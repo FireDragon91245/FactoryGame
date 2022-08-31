@@ -2,12 +2,12 @@
 This is a game im developing for funn and for practise.
 **It isnt ready for plying yet** as much of the buildings and functions and guis are missing
 
-# Modding
+# Modding (Only Parcial Implementet)
 Modding suport is planned and parcial implementet
 
 *Ignore the documentation below as it is only for the already implementet features that only work on core game files*
 
-# Modding Documentation
+# Modding Documentation (Only Parcial Implementet)
 
 1. Custom Guis
 2. Custom Colors
