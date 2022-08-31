@@ -1,0 +1,10 @@
+{
+  "Coal": {
+    "itemVolume": 1,
+    "itemTexture": "\\GameContent\\Item_Coal.png"
+  },
+  "IronOre": {
+    "itemVolume": 1,
+    "itemTexture": "\\GameContent\\Item_IronOre.png"
+  }
+}

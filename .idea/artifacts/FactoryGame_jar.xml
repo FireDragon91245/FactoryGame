@@ -1,0 +1,12 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="FactoryGame:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/FactoryGame_jar</output-path>
+    <root id="archive" name="FactoryGame.jar">
+      <element id="module-output" name="FactoryGame" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/net/lingala/zip4j/zip4j/2.11.1/zip4j-2.11.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/google/code/gson/gson/2.9.0/gson-2.9.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jetbrains/annotations/20.1.0/annotations-20.1.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/fathzer/javaluator/3.0.3/javaluator-3.0.3.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

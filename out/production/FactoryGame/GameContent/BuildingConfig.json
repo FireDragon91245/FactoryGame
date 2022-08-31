@@ -1,0 +1,153 @@
+{
+  "Mine": {
+    "updateDirection": "None",
+    "guiType": "BuildingGuiInputOutputNonAnimated",
+    "inputSlots": 0,
+    "outputSlots": 6,
+    "texturePath": "\\GameContent\\Building_Mine.png",
+    "guiTexturePath": "\\GameContent\\MissingTexture.png",
+    "guiTextureDimensions": 64,
+    "itemControllerType": "ItemSystemWorkControlled",
+    "overwriteGuiImage": true,
+    "inventoryConfig": {
+      "thisImportsFrom": [
+        "CoalOre",
+        "IronOre"
+      ],
+      "thisExportsTo": [],
+      "importSpeed": 1,
+      "exportSpeed": 0,
+      "inventorySpace": 200,
+      "importDirections": [
+        "Top",
+        "Bottom",
+        "Left",
+        "Right"
+      ],
+      "exportDirections": [],
+      "otherBuildingsBlockedImport": [],
+      "otherBuildingsBlockedExport": [],
+      "blockedInputDirections": [],
+      "blockedOutputDirections": []
+    },
+    "workConfig": {
+      "workInterval": 40,
+      "guiImageAnimationFrames": [
+        "\\GameContent\\Building_Mine_Gui_Animation\\1.png",
+        "\\GameContent\\Building_Mine_Gui_Animation\\2.png",
+        "\\GameContent\\Building_Mine_Gui_Animation\\3.png",
+        "\\GameContent\\Building_Mine_Gui_Animation\\4.png",
+        "\\GameContent\\Building_Mine_Gui_Animation\\5.png",
+        "\\GameContent\\Building_Mine_Gui_Animation\\6.png",
+        "\\GameContent\\Building_Mine_Gui_Animation\\7.png",
+        "\\GameContent\\Building_Mine_Gui_Animation\\8.png"
+      ]
+    }
+  },
+  "CoalOre": {
+    "updateDirection": "None",
+    "guiType": "BuildingGuiInputOutputNonAnimated",
+    "inputSlots": 0,
+    "outputSlots": 6,
+    "texturePath": "\\GameContent\\Building_CoalOre.png",
+    "guiTexturePath": "\\GameContent\\MissingTexture.png",
+    "guiTextureDimensions": 64,
+    "itemControllerType": "None",
+    "overwriteGuiImage": false,
+    "inventoryConfig" : {
+      "thisImportsFrom": [],
+      "thisExportsTo": [],
+      "importSpeed": 0,
+      "exportSpeed": 0,
+      "inventorySpace": 2147483647,
+      "importDirections": [],
+      "exportDirections": [],
+      "otherBuildingsBlockedImport": [],
+      "otherBuildingsBlockedExport": [],
+      "blockedInputDirections": [
+        "Top",
+        "Bottom",
+        "Left",
+        "Right"
+      ],
+      "blockedOutputDirections": []
+    },
+    "workConfig": null
+  },
+  "IronOre": {
+    "updateDirection": "None",
+    "guiType": "BuildingGuiInputOutputNonAnimated",
+    "inputSlots": 0,
+    "outputSlots": 6,
+    "texturePath": "\\GameContent\\Building_IronOre.png",
+    "guiTexturePath": "\\GameContent\\Building_IronOre_Gui.png",
+    "guiTextureDimensions": 64,
+    "itemControllerType": "None",
+    "overwriteGuiImage": false,
+    "inventoryConfig": {
+      "thisImportsFrom": [],
+      "thisExportsTo": [],
+      "importSpeed": 0,
+      "exportSpeed": 0,
+      "inventorySpace": 2147483647,
+      "importDirections": [],
+      "exportDirections": [],
+      "otherBuildingsBlockedImport": [
+        "BeltLeftRight"
+      ],
+      "otherBuildingsBlockedExport": [
+        "BeltLeftRight"
+      ],
+      "blockedInputDirections": [
+        "Top",
+        "Bottom",
+        "Left",
+        "Right"
+      ],
+      "blockedOutputDirections": []
+    },
+    "workConfig": null
+  },
+  "BeltLeftRight": {
+    "updateDirection": "RightLeftBottomTop",
+    "guiType": "BuildingGuiInputOutputNonAnimated",
+    "inputSlots": 0,
+    "outputSlots": 4,
+    "texturePath": "\\GameContent\\Building_BeltLeftRight.png",
+    "guiTexturePath": "\\GameContent\\MissingTexture.png",
+    "guiTextureDimensions": 64,
+    "itemControllerType": "ItemSystemMoveDirectToOutput",
+    "overwriteGuiImage": false,
+    "inventoryConfig": {
+      "thisImportsFrom": [
+        "Mine",
+        "BeltLeftRight"
+      ],
+      "thisExportsTo": [
+        "Mine"
+      ],
+      "importSpeed": 1,
+      "exportSpeed": 1,
+      "inventorySpace": 50,
+      "importDirections": [
+        "Left"
+      ],
+      "exportDirections": [
+        "Right"
+      ],
+      "otherBuildingsBlockedImport": [],
+      "otherBuildingsBlockedExport": [
+        "Mine"
+      ],
+      "blockedInputDirections": [
+        "Top",
+        "Bottom"
+      ],
+      "blockedOutputDirections": [
+        "Top",
+        "Bottom"
+      ]
+    },
+    "workConfig": null
+  }
+}

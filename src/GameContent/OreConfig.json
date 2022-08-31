@@ -1,0 +1,28 @@
+{
+  "Coal": {
+    "freeSpaceRequired": 20,
+    "spawnChance": 0.5,
+    "depositType": "Circle",
+    "initialOreChance": 75,
+    "oreChanceFalloff": 7,
+    "maxSpread": 15,
+    "buildingID": "CoalOre",
+    "generatesItem": "Coal",
+    "itemMinBaseAmount": 1000,
+    "itemMaxBaseAmount": 10000,
+    "itemDistanceFalloff": 500
+  },
+  "Iron": {
+    "FreeSpaceRequired": 30,
+    "spawnChance": 0.10,
+    "depositType": "Linear",
+    "initialOreChance": 50,
+    "oreChanceFalloff": 8,
+    "maxSpread": 50,
+    "buildingID": "IronOre",
+    "generatesItem": "IronOre",
+    "itemMinBaseAmount": 1000,
+    "itemMaxBaseAmount": 10000,
+    "itemDistanceFalloff": 100
+  }
+}
