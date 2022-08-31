@@ -1,18 +1,28 @@
 package GameConverter;
 
-import GameCore.GuiElements.*;
+import GameContent.GameEvaluator;
+import GameCore.GuiElements.StaticGuiElement;
 import com.google.gson.*;
 
 import java.lang.reflect.Type;
+import java.util.Map;
 
 public class StaticGuiElementDeserializer implements JsonDeserializer<StaticGuiElement> {
     @Override
     public StaticGuiElement deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
         JsonObject jsonObject = jsonElement.getAsJsonObject();
-        String componentType = jsonObject.get("componentType").getAsString();
-        if (type == null) {
-            throw new JsonParseException("Not able to parse enum \"ComponentTypes\" from value " + jsonObject.get("componentType").getAsString());
+        for(Map.Entry<String, JsonElement> entry : jsonObject.deepCopy().entrySet()){
+            if(entry.getValue().isJsonPrimitive()){
+                if(entry.getValue().getAsJsonPrimitive().isString()){
+                    if(!entry.getValue().getAsString().startsWith("$")){
+                        continue;
+                    }
+                    jsonObject.remove(entry.getKey());
+                    jsonObject.addProperty(entry.getKey(), GameEvaluator.evaluate(entry.getValue().getAsString()));
+                }
+            }
         }
+        String componentType = jsonObject.get("componentType").getAsString();
         try {
             return jsonDeserializationContext.deserialize(jsonObject, Class.forName(componentType));
         } catch (ClassNotFoundException e) {

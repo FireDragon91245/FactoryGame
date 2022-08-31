@@ -24,8 +24,7 @@ public class GameCompiler {
             if(compiledCode == null){
                 return true;
             }
-            compiledCode = compiledCode.substring(0, compiledCode.length() - 4); // Removing end file \r and new line \n
-            return !(code.equals(compiledCode));
+            return !(code.equals(compiledCode.substring(0, compiledCode.length() - 2)));
         }
         return true;
     }

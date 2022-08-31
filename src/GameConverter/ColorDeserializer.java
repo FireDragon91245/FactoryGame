@@ -27,6 +27,9 @@ public class ColorDeserializer implements JsonDeserializer<Color> {
             }
             throw new JsonParseException("No match for color alias! NULL");
         }
+        else if(object.has("hex")){
+            return Color.decode(object.get("hex").getAsString());
+        }
         else {
             int r = object.get("r").getAsInt();
             int g = object.get("g").getAsInt();
