@@ -352,7 +352,7 @@
 </details>
 
 # 2. Custom Colors
-  - Colors can be generatet via RGB or an alias this scructure can be used where **[Color]** is named as type
+  - Colors can be generatet via RGB or Hex or an alias this scructure can be used where **[Color]** is named as type
   - they follow the pattern
     ```json
       { "r": [Number], "g": [Number], "b": [Number] }
@@ -360,6 +360,10 @@
       OR
     ```json
       { "alias": [alias] }
+    ```
+      OR
+    ```json
+      { "hex": [hex] }
     ```
   - alias decribes a constant from the ```java.awt.Color``` class like ```Color.BLACK``` so the alias is 
     ```"alias": "BLACK"```
