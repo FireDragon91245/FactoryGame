@@ -25,7 +25,7 @@ public class GuiBuilderDeserializer implements JsonDeserializer<GuiBuilder> {
                 }
             }
         }
-        return Main.gson.fromJson(obj, type);
+        return Main.getGsonMaster().fromJson(obj, type);
     }
 
 }

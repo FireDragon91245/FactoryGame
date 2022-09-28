@@ -1,7 +1,7 @@
 package GameCore.GuiElements;
 
 import GameContent.GameCompiler;
-import GameCore.GameCore;
+import GameCore.Main;
 
 import java.awt.event.MouseEvent;
 import java.lang.reflect.InvocationTargetException;
@@ -38,17 +38,17 @@ public class SimpleButton implements InteractiveGuiElement {
     public void compile() {
         Class<? extends Intractable> interactionClass = GameCompiler.compileCode(interactionCode, className);
         if (interactionClass == null) {
-            GameCore.setErrorGameStateException(new NullPointerException("The result of the runtime compilation for class name: " + className + " resulted in a null value"));
+            Main.getClient().setErrorGameStateException(new NullPointerException("The result of the runtime compilation for class name: " + className + " resulted in a null value"));
         } else {
             try {
                 instance = interactionClass.getDeclaredConstructor().newInstance();
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                      NoSuchMethodException e) {
-                GameCore.setErrorGameStateException(e);
+                Main.getClient().setErrorGameStateException(e);
             }
         }
         if (instance == null) {
-            GameCore.setErrorGameStateException(new NullPointerException("The result of the instantiation of the runtime compiled class: " + className + " resulted in a null instance"));
+            Main.getClient().setErrorGameStateException(new NullPointerException("The result of the instantiation of the runtime compiled class: " + className + " resulted in a null instance"));
         }
     }
 

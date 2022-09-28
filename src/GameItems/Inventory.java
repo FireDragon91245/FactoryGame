@@ -1,7 +1,7 @@
 package GameItems;
 
-import GameBuildings.BuildingCore;
 import GameBuildings.Buildings;
+import GameCore.Main;
 
 import java.util.ArrayList;
 
@@ -55,8 +55,8 @@ public class Inventory {
     }
 
     private void init() {
-        int slotsIn = BuildingCore.getBuildingConfig(bType).inputSlots;
-        int slotsOut = BuildingCore.getBuildingConfig(bType).outputSlots;
+        int slotsIn = Main.getClient().buildingCore().getBuildingConfig(bType).inputSlots;
+        int slotsOut = Main.getClient().buildingCore().getBuildingConfig(bType).outputSlots;
         for(int i = 0; i < slotsIn; i++){
             inputItems.add(i, new ItemStack(Items.None, 0));
         }

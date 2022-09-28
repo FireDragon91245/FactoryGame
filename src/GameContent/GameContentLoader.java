@@ -1,14 +1,11 @@
 package GameContent;
 
-import GameBuildings.BuildingCore;
 import GameBuildings.Buildings;
-import GameCore.GameCore;
-import GameCore.GameGraphics;
-import GameCore.GameGui;
-import GameItems.ItemMain;
-import GameItems.Items;
 import GameCore.GuiBuilder;
 import GameCore.GuiTypes;
+import GameCore.Main;
+import GameItems.ItemMain;
+import GameItems.Items;
 import GameUtils.GameUtils;
 
 import javax.imageio.ImageIO;
@@ -26,17 +23,17 @@ public class GameContentLoader {
             BufferedImage image;
             try {
                 File fi;
-                if(!BuildingCore.containsBuildingConfig(b)){
-                    GameCore.setErrorGameStateException(new NullPointerException(String.format("Tried to get the config of a non loaded building ID: %s", b.toString())));
+                if(!Main.getClient().buildingCore().containsBuildingConfig(b)){
+                    Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Tried to get the config of a non loaded building ID: %s", b.toString())));
                     return;
                 }
-                fi = new File(getValidPath(BuildingCore.getBuildingConfig(b).texturePath));
+                fi = new File(getValidPath(Main.getClient().buildingCore().getBuildingConfig(b).texturePath));
                 image = ImageIO.read(fi);
             }catch (IOException e){
-                GameCore.setErrorGameStateException(e);
+                Main.getClient().setErrorGameStateException(e);
                 return;
             }
-            GameGraphics.RegisterBuildingImage(b, image);
+            Main.getClient().clientGraphics().RegisterBuildingImage(b, image);
         }
     }
 
@@ -45,17 +42,17 @@ public class GameContentLoader {
             BufferedImage image;
             try {
                 File fi;
-                if(!BuildingCore.containsBuildingConfig(b)){
-                    GameCore.setErrorGameStateException(new NullPointerException(String.format("Tried to get the config of a non loaded building ID: %s", b.toString())));
+                if(!Main.getClient().buildingCore().containsBuildingConfig(b)){
+                    Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Tried to get the config of a non loaded building ID: %s", b.toString())));
                     return;
                 }
-                fi = new File(getValidPath(BuildingCore.getBuildingConfig(b).guiTexturePath));
+                fi = new File(getValidPath(Main.getClient().buildingCore().getBuildingConfig(b).guiTexturePath));
                 image = ImageIO.read(fi);
             }catch (IOException e){
-                GameCore.setErrorGameStateException(e);
+                Main.getClient().setErrorGameStateException(e);
                 return;
             }
-            GameGraphics.RegisterBuildingGuiImage(b, image);
+            Main.getClient().clientGraphics().RegisterBuildingGuiImage(b, image);
         }
     }
 
@@ -68,49 +65,49 @@ public class GameContentLoader {
             try {
                 File fi;
                 if(!ItemMain.containsItemConfig(item)){
-                    GameCore.setErrorGameStateException(new NullPointerException(String.format("Tried to get the config of a non loaded item ID: %s", item.toString())));
+                    Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Tried to get the config of a non loaded item ID: %s", item.toString())));
                     return;
                 }
                 fi = new File(getValidPath(ItemMain.getItemConfig(item).itemTexture));
                 image = ImageIO.read(fi);
             }catch (IOException e){
-                GameCore.setErrorGameStateException(e);
+                Main.getClient().setErrorGameStateException(e);
                 return;
             }
-            GameGui.addItemTexture(item, image);
+            Main.getClient().clientGraphics().gui().addItemTexture(item, image);
         }
     }
 
     public static void loadAndMapGuiAnimationFrames(){
         for(Buildings b : Buildings.values()){
-            if(!BuildingCore.containsBuildingConfig(b)){
-                GameCore.setErrorGameStateException(new NullPointerException(String.format("Tried to get the config of a non loaded building ID: %s", b.toString())));
+            if(!Main.getClient().buildingCore().containsBuildingConfig(b)){
+                Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Tried to get the config of a non loaded building ID: %s", b.toString())));
                 return;
             }
-            if(BuildingCore.getBuildingConfig(b).workConfig == null){
+            if(Main.getClient().buildingCore().getBuildingConfig(b).workConfig == null){
                 continue;
             }
-            if(!BuildingCore.getBuildingConfig(b).overwriteGuiImage){
+            if(!Main.getClient().buildingCore().getBuildingConfig(b).overwriteGuiImage){
                 continue;
             }
-            BufferedImage[] images = new BufferedImage[BuildingCore.getBuildingConfig(b).workConfig.guiImageAnimationFrames.length];
+            BufferedImage[] images = new BufferedImage[Main.getClient().buildingCore().getBuildingConfig(b).workConfig.guiImageAnimationFrames.length];
             for(int i = 0; i < images.length; i++) {
                 try {
-                    File fi = new File(getValidPath(BuildingCore.getBuildingConfig(b).workConfig.guiImageAnimationFrames[i]));
+                    File fi = new File(getValidPath(Main.getClient().buildingCore().getBuildingConfig(b).workConfig.guiImageAnimationFrames[i]));
                     images[i] = ImageIO.read(fi);
                 } catch (IOException e) {
-                    GameCore.setErrorGameStateException(e);
+                    Main.getClient().setErrorGameStateException(e);
                     return;
                 }
             }
-            GameGui.registerGuiAnimationForBuilding(MapAnimationFrames(images, BuildingCore.getBuildingConfig(b).workConfig.workInterval), b);
+            Main.getClient().clientGraphics().gui().registerGuiAnimationForBuilding(MapAnimationFrames(images, Main.getClient().buildingCore().getBuildingConfig(b).workConfig.workInterval), b);
         }
     }
 
     private static HashMap<Integer, BufferedImage> MapAnimationFrames(BufferedImage[] images, int workInterval) {
         HashMap<Integer, BufferedImage> mappedImages = new HashMap<>(workInterval);
         if(workInterval % images.length != 0){
-            GameCore.setErrorGameStateException(new IllegalArgumentException(String.format("Not able to map images because no even distribution is possible (%s / %s %% 1 != 0)", workInterval, images.length)));
+            Main.getClient().setErrorGameStateException(new IllegalArgumentException(String.format("Not able to map images because no even distribution is possible (%s / %s %% 1 != 0)", workInterval, images.length)));
             return mappedImages;
         }
         int framesPerImage = workInterval / images.length;
@@ -123,18 +120,18 @@ public class GameContentLoader {
     }
 
     public static void BuildGuis(){
-        for(Map.Entry<GuiTypes, GuiBuilder> entry : GameGui.getGuiBuilders().entrySet()){
-            GameGui.addGui(entry.getKey(), entry.getValue().build());
+        for(Map.Entry<GuiTypes, GuiBuilder> entry : Main.getClient().clientGraphics().gui().getGuiBuilders().entrySet()){
+            Main.getClient().clientGraphics().gui().addGui(entry.getKey(), entry.getValue().build());
         }
     }
 
     private static String getValidPath(String tilePath){
-        for(String p : GameCore.getRootFolders()){
+        for(String p : Main.getClient().getRootFolders()){
             if(new File(p + tilePath).exists()){
                 return p + tilePath;
             }
         }
-        GameCore.setErrorGameStateException(new FileNotFoundException(String.format("The tile path \"%s\"was not found in any root folder, root folders: %s", tilePath, GameUtils.listToString(GameCore.getRootFolders()))));
+        Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("The tile path \"%s\"was not found in any root folder, root folders: %s", tilePath, GameUtils.listToString(Main.getClient().getRootFolders()))));
         return tilePath;
     }
 }

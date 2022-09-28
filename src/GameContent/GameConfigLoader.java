@@ -19,7 +19,7 @@ public class GameConfigLoader {
     public static void loadBuildingConfig(String path) {
         String jsonString = readFile(path);
         if (jsonString == null) {
-            GameCore.setErrorGameStateException(new NullPointerException(String.format("Result of reading file %s returned null", path)));
+            Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Result of reading file %s returned null", path)));
             return;
         }
 
@@ -29,31 +29,31 @@ public class GameConfigLoader {
             Gson gson = new Gson();
             BuildingConfig config = gson.fromJson(childObject, BuildingConfig.class);
             if (config == null) {
-                GameCore.setErrorGameStateException(new NullPointerException(String.format("The building Config loading result of the building: %s is null!", bId)));
+                Main.getClient().setErrorGameStateException(new NullPointerException(String.format("The building Config loading result of the building: %s is null!", bId)));
                 return;
             }
 
-            BuildingCore.setBuildingConfig(bId, config);
+            Main.getClient().buildingCore().setBuildingConfig(bId, config);
         }
     }
 
     public static String readFile(String path) {
         String fullFilePath = path;
-        for (String p : GameCore.getRootFolders()) {
+        for (String p : Main.getClient().getRootFolders()) {
             if (new File(p + path).exists()) {
                 fullFilePath = p + path;
                 break;
             }
         }
         if (fullFilePath.equalsIgnoreCase(path)) {
-            GameCore.setErrorGameStateException(new FileNotFoundException(String.format("Config file was not found on any root path, root paths: %s", GameUtils.listToString(GameCore.getRootFolders()))));
+            Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("Config file was not found on any root path, root paths: %s", GameUtils.listToString(Main.getClient().getRootFolders()))));
         }
         String jsonString = null;
         BufferedReader reader;
         try {
             reader = new BufferedReader(new FileReader(fullFilePath));
         } catch (FileNotFoundException e) {
-            GameCore.setErrorGameStateException(e);
+            Main.getClient().setErrorGameStateException(e);
             return null;
         }
 
@@ -69,7 +69,7 @@ public class GameConfigLoader {
 
             jsonString = builder.toString();
         } catch (IOException e) {
-            GameCore.setErrorGameStateException(e);
+            Main.getClient().setErrorGameStateException(e);
         }
         return jsonString;
     }
@@ -77,7 +77,7 @@ public class GameConfigLoader {
     public static void loadOreConfig(String path) {
         String jsonString = readFile(path);
         if (jsonString == null) {
-            GameCore.setErrorGameStateException(new NullPointerException(String.format("Result of reading file %s returned null", path)));
+            Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Result of reading file %s returned null", path)));
             return;
         }
 
@@ -87,18 +87,18 @@ public class GameConfigLoader {
             Gson gson = new Gson();
             OreConfig config = gson.fromJson(childObject, OreConfig.class);
             if (config == null) {
-                GameCore.setErrorGameStateException(new NullPointerException(String.format("The ore Config loading result of the ore: %s is null!", oreType)));
+                Main.getClient().setErrorGameStateException(new NullPointerException(String.format("The ore Config loading result of the ore: %s is null!", oreType)));
                 return;
             }
 
-            BuildingCore.setOreConfig(oreType, config);
+            Main.getClient().buildingCore().setOreConfig(oreType, config);
         }
     }
 
     public static void loadItemConfig(String path) {
         String jsonString = readFile(path);
         if (jsonString == null) {
-            GameCore.setErrorGameStateException(new NullPointerException(String.format("Result of reading file %s returned null", path)));
+            Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Result of reading file %s returned null", path)));
             return;
         }
 
@@ -108,9 +108,9 @@ public class GameConfigLoader {
                 continue;
             }
             JsonObject childObject = jsonObject.getAsJsonObject(item.toString());
-            ItemConfig config = Main.gson.fromJson(childObject, ItemConfig.class);
+            ItemConfig config = Main.getGsonMaster().fromJson(childObject, ItemConfig.class);
             if (config == null) {
-                GameCore.setErrorGameStateException(new NullPointerException(String.format("The ore Config loading result of the item: %s is null!", item)));
+                Main.getClient().setErrorGameStateException(new NullPointerException(String.format("The ore Config loading result of the item: %s is null!", item)));
                 return;
             }
 
@@ -121,21 +121,21 @@ public class GameConfigLoader {
     public static void loadGuiConfig(String path) {
         String jsonString = readFile(path);
         if (jsonString == null) {
-            GameCore.setErrorGameStateException(new NullPointerException(String.format("Result of reading file %s returned null", path)));
+            Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Result of reading file %s returned null", path)));
             return;
         }
 
         Gson gson = new GsonBuilder().registerTypeAdapter(GuiBuilder.class, new GuiBuilderDeserializer()).create();
-        JsonObject jsonObject = Main.gson.fromJson(jsonString, JsonObject.class);
+        JsonObject jsonObject = Main.getGsonMaster().fromJson(jsonString, JsonObject.class);
         for (GuiTypes type : GuiTypes.values()) {
             JsonObject childObject = jsonObject.getAsJsonObject(type.toString());
             GuiBuilder builder = gson.fromJson(childObject, GuiBuilder.class);
             if (builder == null) {
-                GameCore.setErrorGameStateException(new NullPointerException(String.format("The result of trying to load %s resulted in a null value", type)));
+                Main.getClient().setErrorGameStateException(new NullPointerException(String.format("The result of trying to load %s resulted in a null value", type)));
                 return;
             }
 
-            GameGui.addGuiBuilder(type, builder);
+            Main.getClient().clientGraphics().gui().addGuiBuilder(type, builder);
         }
     }
 }

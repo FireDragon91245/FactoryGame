@@ -2,7 +2,7 @@ package GameInput;
 
 import GameUtils.Vec2i;
 
-public class GameInputeMain {
+public class GameInputMain {
     private static boolean isMousePressed;
     private static Vec2i cursorGridPosition = new Vec2i();
     private static Vec2i cursorPosition = new Vec2i();

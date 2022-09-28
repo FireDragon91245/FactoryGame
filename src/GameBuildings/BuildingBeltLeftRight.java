@@ -1,6 +1,6 @@
 package GameBuildings;
 
-import GameCore.GameCore;
+import GameCore.Main;
 import GameItems.Inventory;
 
 import java.util.ArrayList;
@@ -51,16 +51,16 @@ public class BuildingBeltLeftRight implements Building{
 
     @Override
     public int getWorkingProgress() {
-        GameCore.setErrorGameStateException(new IllegalStateException(String.format("Called getWorkingProgress() on a building (%s) that isn't work Controlled!", getType())));
+        Main.getClient().setErrorGameStateException(new IllegalStateException(String.format("Called getWorkingProgress() on a building (%s) that isn't work Controlled!", getType())));
         return -1;
     }
 
     @Override
     public void neighborAdded(Buildings type) {
-        if(Arrays.stream(BuildingCore.getBuildingConfig(getType()).inventoryConfig.thisImportsFrom).anyMatch(x -> x == type)){
+        if(Arrays.stream(Main.getClient().buildingCore().getBuildingConfig(getType()).inventoryConfig.thisImportsFrom).anyMatch(x -> x == type)){
             hasInventoryTarget = true;
         }
-        if(Arrays.stream(BuildingCore.getBuildingConfig(getType()).inventoryConfig.thisExportsTo).anyMatch(x -> x == type)){
+        if(Arrays.stream(Main.getClient().buildingCore().getBuildingConfig(getType()).inventoryConfig.thisExportsTo).anyMatch(x -> x == type)){
             hasInventoryTarget = true;
         }
     }
@@ -72,10 +72,10 @@ public class BuildingBeltLeftRight implements Building{
 
     @Override
     public void updateSelfInventoryTargetAfterPlace(ArrayList<Buildings> neighborTypes) {
-        if(Arrays.stream(BuildingCore.getBuildingConfig(getType()).inventoryConfig.thisImportsFrom).anyMatch(neighborTypes::contains)){
+        if(Arrays.stream(Main.getClient().buildingCore().getBuildingConfig(getType()).inventoryConfig.thisImportsFrom).anyMatch(neighborTypes::contains)){
             hasInventoryTarget = true;
         }
-        if(Arrays.stream(BuildingCore.getBuildingConfig(getType()).inventoryConfig.thisExportsTo).anyMatch(neighborTypes::contains)){
+        if(Arrays.stream(Main.getClient().buildingCore().getBuildingConfig(getType()).inventoryConfig.thisExportsTo).anyMatch(neighborTypes::contains)){
             hasInventoryTarget = true;
         }
     }

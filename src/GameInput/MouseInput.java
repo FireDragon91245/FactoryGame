@@ -1,6 +1,6 @@
 package GameInput;
 
-import GameCore.GameGui;
+import GameCore.Main;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -8,7 +8,7 @@ import java.awt.event.MouseListener;
 public class MouseInput implements MouseListener {
     @Override
     public void mouseClicked(MouseEvent e) {
-        GameGui.sendMouseEventAll(e);
+        Main.getClient().clientGraphics().gui().sendMouseEventAll(e);
     }
 
     @Override

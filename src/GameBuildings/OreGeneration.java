@@ -1,6 +1,6 @@
 package GameBuildings;
 
-import GameCore.GameCore;
+import GameCore.Main;
 import GameItems.Inventory;
 import GameItems.ItemStack;
 import GameItems.Items;
@@ -20,18 +20,18 @@ public class OreGeneration {
                 if (ores[i][j] == null) {
                     continue;
                 }
-                Class<? extends Building> T = BuildingCore.GetClassFromBuildingType(ores[i][j].type);
+                Class<? extends Building> T = Main.getClient().buildingCore().GetClassFromBuildingType(ores[i][j].type);
                 Building building;
                 try {
                     building = T.getConstructor(int.class, int.class).newInstance(i, j);
                 } catch (Exception e) {
                     System.out.println("hallo");
-                    GameCore.setErrorGameStateException(e);
+                    Main.getClient().setErrorGameStateException(e);
                     return;
                 }
                 building.overwriteInventory(generateInventory(ores[i][j].oreType, ores[i][j].type, ores[i][j].dist));
                 if(!building.getInventory().isOutputEmpty()) {
-                    BuildingCore.addBuilding(i, j, building);
+                    Main.getClient().buildingCore().addBuilding(i, j, building);
                 }
             }
         }
@@ -39,33 +39,33 @@ public class OreGeneration {
 
     private static Inventory generateInventory(Ores ore, Buildings building, double dist) {
         Inventory inv = new Inventory(building);
-        if(BuildingCore.getOreConfig(ore).generatesItem == Items.None){
+        if(Main.getClient().buildingCore().getOreConfig(ore).generatesItem == Items.None){
             return inv;
         }
         Random rand = new Random();
-        for(int i = 0; i < BuildingCore.getBuildingConfig(building).outputSlots; i++) {
-            int amount = RandomNumber(rand, BuildingCore.getOreConfig(ore).itemMinBaseAmount, BuildingCore.getOreConfig(ore).itemMaxBaseAmount) - ((int) dist * BuildingCore.getOreConfig(ore).itemDistanceFalloff);
+        for(int i = 0; i < Main.getClient().buildingCore().getBuildingConfig(building).outputSlots; i++) {
+            int amount = RandomNumber(rand, Main.getClient().buildingCore().getOreConfig(ore).itemMinBaseAmount, Main.getClient().buildingCore().getOreConfig(ore).itemMaxBaseAmount) - ((int) dist * Main.getClient().buildingCore().getOreConfig(ore).itemDistanceFalloff);
             if(amount <= 0) {
                 inv.setOutputSlot(i, new ItemStack(Items.None, 0));
             }else{
-                inv.setOutputSlot(i, new ItemStack(BuildingCore.getOreConfig(ore).generatesItem, amount));
+                inv.setOutputSlot(i, new ItemStack(Main.getClient().buildingCore().getOreConfig(ore).generatesItem, amount));
             }
         }
         return inv;
     }
 
     public static OreDataSet[][] GenerateOreMap() {
-        OreDataSet[][] ores = new OreDataSet[GameCore.windowWidth() / 10][GameCore.windowHeight() / 10];
+        OreDataSet[][] ores = new OreDataSet[Main.getClient().windowWidth() / 10][Main.getClient().windowHeight() / 10];
         ConcurrentHashMap<Ores, ConcurrentLinkedQueue<Vec2i>> oreNodeRoots = new ConcurrentHashMap<>();
         for (Ores ore : Ores.values()) {
-            if (!BuildingCore.containsOreConfig(ore)) {
-                GameCore.setErrorGameStateException(new NullPointerException(String.format("Ore Config was not found in BuildingCore class for building: %s", ore.toString())));
+            if (!Main.getClient().buildingCore().containsOreConfig(ore)) {
+                Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Ore Config was not found in BuildingCore class for building: %s", ore.toString())));
             }
         }
         for (Ores ore : Ores.values()) {
             for (int i = 0; i < ores.length; i++) {
                 for (int j = 0; j < ores[0].length; j++) {
-                    if (isChance(BuildingCore.getOreConfig(ore).spawnChance)) {
+                    if (isChance(Main.getClient().buildingCore().getOreConfig(ore).spawnChance)) {
                         if (oreNodeRoots.containsKey(ore)) {
                             oreNodeRoots.get(ore).add(new Vec2i(i, j));
                         } else {
@@ -80,7 +80,7 @@ public class OreGeneration {
             for (Vec2i pos : oreNodeRoots.get(ore)) {
                 for (Vec2i pos2 : oreNodeRoots.get(ore)) {
                     if (!pos.compareVec(pos2)) {
-                        if (pos.dist(pos2) < BuildingCore.getOreConfig(ore).freeSpaceRequired) {
+                        if (pos.dist(pos2) < Main.getClient().buildingCore().getOreConfig(ore).freeSpaceRequired) {
                             oreNodeRoots.get(ore).removeIf(x -> x.compareVec(pos2));
                         }
                     }
@@ -89,17 +89,10 @@ public class OreGeneration {
         }
         for (Ores ore : oreNodeRoots.keySet()) {
             for (Vec2i pos : oreNodeRoots.get(ore)) {
-                switch (BuildingCore.getOreConfig(ore).depositType) {
-
-                    case Circle:
-                        ores = GenerateCircularOrePatch(pos, ore, ores);
-                        break;
-                    case Linear:
-                        ores = GenerateLinearOrePatch(pos, ore, ores);
-                        break;
-                    default:
-                        throw new IllegalStateException("Unexpected value: " + BuildingCore.getOreConfig(ore).depositType);
-                }
+                ores = switch (Main.getClient().buildingCore().getOreConfig(ore).depositType) {
+                    case Circle -> GenerateCircularOrePatch(pos, ore, ores);
+                    case Linear -> GenerateLinearOrePatch(pos, ore, ores);
+                };
             }
         }
         return ores;
@@ -112,11 +105,11 @@ public class OreGeneration {
 
     public static OreDataSet[][] GenerateLinearOrePatch(Vec2i pos, Ores ore, OreDataSet[][] ores) {
         Random rand = new Random();
-        Vec2i pos2 = pos.add(RandomNumber(rand, -BuildingCore.getOreConfig(ore).maxSpread, BuildingCore.getOreConfig(ore).maxSpread),
-                RandomNumber(rand, -BuildingCore.getOreConfig(ore).maxSpread / 2, BuildingCore.getOreConfig(ore).maxSpread / 2)
+        Vec2i pos2 = pos.add(RandomNumber(rand, - Main.getClient().buildingCore().getOreConfig(ore).maxSpread, Main.getClient().buildingCore().getOreConfig(ore).maxSpread),
+                RandomNumber(rand, - Main.getClient().buildingCore().getOreConfig(ore).maxSpread / 2, Main.getClient().buildingCore().getOreConfig(ore).maxSpread / 2)
         );
 
-        ConcurrentLinkedQueue<Vec2i> lineVects = new ConcurrentLinkedQueue<>();
+        ConcurrentLinkedQueue<Vec2i> lineVecs = new ConcurrentLinkedQueue<>();
 
         int difx = pos2.x - pos.x;
         int dify = pos2.y - pos.y;
@@ -125,22 +118,22 @@ public class OreGeneration {
             for(int i = pos.x; i < pos2.x; i++){
                 int res = pos.y + dify * (i - pos.x) / difx;
                 if(i >= 0 && i < ores.length && res >= 0 && res < ores[0].length) {
-                    ores[i][res] = new OreDataSet(0, BuildingCore.getOreConfig(ore).buildingID, ore);
+                    ores[i][res] = new OreDataSet(0, Main.getClient().buildingCore().getOreConfig(ore).buildingID, ore);
                 }
-                lineVects.add(new Vec2i(i, res));
+                lineVecs.add(new Vec2i(i, res));
             }
         }else{
             for(int i = pos.x; i > pos2.x; i--){
                 int res = pos.y + dify * (i - pos.x) / difx;
                 if(i >= 0 && i < ores.length && res >= 0 && res < ores[0].length) {
-                    ores[i][res] = new OreDataSet(0, BuildingCore.getOreConfig(ore).buildingID, ore);
+                    ores[i][res] = new OreDataSet(0, Main.getClient().buildingCore().getOreConfig(ore).buildingID, ore);
                 }
-                lineVects.add(new Vec2i(i, res));
+                lineVecs.add(new Vec2i(i, res));
             }
         }
 
-        for(Vec2i vec : lineVects){
-            ores = GenerateCirculatOrePatchAround(vec, ores, BuildingCore.getOreConfig(ore).maxSpread / 10, BuildingCore.getOreConfig(ore).initialOreChance, BuildingCore.getOreConfig(ore).oreChanceFalloff, BuildingCore.getOreConfig(ore).buildingID, ore);
+        for(Vec2i vec : lineVecs){
+            ores = GenerateCirculatOrePatchAround(vec, ores, Main.getClient().buildingCore().getOreConfig(ore).maxSpread / 10, Main.getClient().buildingCore().getOreConfig(ore).initialOreChance, Main.getClient().buildingCore().getOreConfig(ore).oreChanceFalloff, Main.getClient().buildingCore().getOreConfig(ore).buildingID, ore);
         }
         return ores;
     }
@@ -222,12 +215,12 @@ public class OreGeneration {
                 if (placed.contains(test)) {
                     toTest.removeIf(x -> x.compareVec(test));
                 }
-                if (pos.dist(test) > BuildingCore.getOreConfig(ore).maxSpread) {
+                if (pos.dist(test) > Main.getClient().buildingCore().getOreConfig(ore).maxSpread) {
                     toTest.removeIf(x -> x.compareVec(test));
                     continue;
                 }
                 if (!placed.contains(new Vec2i(test.x + 1, test.y))) {
-                    if (isChance(BuildingCore.getOreConfig(ore).initialOreChance - pos.dist(new Vec2i(test.x + 1, test.y)) * BuildingCore.getOreConfig(ore).oreChanceFalloff)) {
+                    if (isChance(Main.getClient().buildingCore().getOreConfig(ore).initialOreChance - pos.dist(new Vec2i(test.x + 1, test.y)) * Main.getClient().buildingCore().getOreConfig(ore).oreChanceFalloff)) {
                         if (!toTest.contains(new Vec2i(test.x + 1, test.y))) {
                             toTest.add(new Vec2i(test.x + 1, test.y));
                         }
@@ -237,7 +230,7 @@ public class OreGeneration {
                     }
                 }
                 if (!placed.contains(new Vec2i(test.x - 1, test.y))) {
-                    if (isChance(BuildingCore.getOreConfig(ore).initialOreChance - pos.dist(new Vec2i(test.x - 1, test.y)) * BuildingCore.getOreConfig(ore).oreChanceFalloff)) {
+                    if (isChance(Main.getClient().buildingCore().getOreConfig(ore).initialOreChance - pos.dist(new Vec2i(test.x - 1, test.y)) * Main.getClient().buildingCore().getOreConfig(ore).oreChanceFalloff)) {
                         if (!toTest.contains(new Vec2i(test.x - 1, test.y))) {
                             toTest.add(new Vec2i(test.x - 1, test.y));
                         }
@@ -247,7 +240,7 @@ public class OreGeneration {
                     }
                 }
                 if (!placed.contains(new Vec2i(test.x, test.y + 1))) {
-                    if (isChance(BuildingCore.getOreConfig(ore).initialOreChance - pos.dist(new Vec2i(test.x, test.y + 1)) * BuildingCore.getOreConfig(ore).oreChanceFalloff)) {
+                    if (isChance(Main.getClient().buildingCore().getOreConfig(ore).initialOreChance - pos.dist(new Vec2i(test.x, test.y + 1)) * Main.getClient().buildingCore().getOreConfig(ore).oreChanceFalloff)) {
                         if (!toTest.contains(new Vec2i(test.x, test.y + 1))) {
                             toTest.add(new Vec2i(test.x, test.y + 1));
                         }
@@ -257,7 +250,7 @@ public class OreGeneration {
                     }
                 }
                 if (!placed.contains(new Vec2i(test.x, test.y - 1))) {
-                    if (isChance(BuildingCore.getOreConfig(ore).initialOreChance - pos.dist(new Vec2i(test.x, test.y - 1)) * BuildingCore.getOreConfig(ore).oreChanceFalloff)) {
+                    if (isChance(Main.getClient().buildingCore().getOreConfig(ore).initialOreChance - pos.dist(new Vec2i(test.x, test.y - 1)) * Main.getClient().buildingCore().getOreConfig(ore).oreChanceFalloff)) {
                         if (!toTest.contains(new Vec2i(test.x, test.y - 1))) {
                             toTest.add(new Vec2i(test.x, test.y - 1));
                         }
@@ -272,7 +265,7 @@ public class OreGeneration {
         for (Vec2i vec : placed) {
             if (vec.x >= 0 && vec.x < ores.length) {
                 if (vec.y >= 0 && vec.y < ores[0].length) {
-                    ores[vec.x][vec.y] = new OreDataSet(pos.dist(vec), BuildingCore.getOreConfig(ore).buildingID, ore);
+                    ores[vec.x][vec.y] = new OreDataSet(pos.dist(vec), Main.getClient().buildingCore().getOreConfig(ore).buildingID, ore);
                 }
             }
         }

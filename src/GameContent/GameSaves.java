@@ -1,7 +1,5 @@
 package GameContent;
 
-import GameBuildings.BuildingCore;
-import GameCore.GameCore;
 import GameCore.Main;
 
 import java.io.File;
@@ -11,22 +9,22 @@ import java.io.PrintWriter;
 public class GameSaves {
 
     public static void save(String saveName){
-        String json = Main.gson.toJson(BuildingCore.getAllBuildings());
+        String json = Main.getGsonMaster().toJson(Main.getClient().buildingCore().getAllBuildings());
         String path = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
         File f = new File(path + "saves\\" + saveName);
         try {
             if(!f.createNewFile()){
-                GameCore.setErrorGameStateException(new IOException("The creation of the save file with name: " + saveName + " failed"));
+                Main.getClient().setErrorGameStateException(new IOException("The creation of the save file with name: " + saveName + " failed"));
             }
         } catch (IOException e) {
-            GameCore.setErrorGameStateException(e);
+            Main.getClient().setErrorGameStateException(e);
         }
 
         try (PrintWriter writer = new PrintWriter(f)){
             writer.print(json);
         }
         catch (IOException e) {
-            GameCore.setErrorGameStateException(e);
+            Main.getClient().setErrorGameStateException(e);
         }
     }
 

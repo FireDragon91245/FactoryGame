@@ -1,6 +1,5 @@
 package GameContent;
 
-import GameCore.GameCore;
 import GameCore.GuiElements.Intractable;
 import GameCore.Main;
 
@@ -53,14 +52,14 @@ public class GameCompiler {
         try (URLClassLoader loader = URLClassLoader.newInstance(new URL[]{new File(path).toURI().toURL()})) {
             Class<?> cls = Class.forName("RuntimeContent." + className, true, loader);
             if (!Intractable.class.isAssignableFrom(cls)) {
-                GameCore.setErrorGameStateException(new ClassCastException("Cannot cast the runtime compiled class: " + className + " from file: " + fiResult.getAbsolutePath() + " to the required interface: " + Intractable.class.getName()));
+                Main.getClient().setErrorGameStateException(new ClassCastException("Cannot cast the runtime compiled class: " + className + " from file: " + fiResult.getAbsolutePath() + " to the required interface: " + Intractable.class.getName()));
                 return null;
             }
             return (Class<? extends Intractable>) cls;
         } catch (IOException | ClassNotFoundException e) {
-            GameCore.setErrorGameStateException(e);
+            Main.getClient().setErrorGameStateException(e);
         }
-        GameCore.setErrorGameStateException(new ClassNotFoundException("Couldn't find the runtime compiled class: " + className + " int the expected locations! Expected Location: " + fiResult.getAbsolutePath()));
+        Main.getClient().setErrorGameStateException(new ClassNotFoundException("Couldn't find the runtime compiled class: " + className + " int the expected locations! Expected Location: " + fiResult.getAbsolutePath()));
         return null;
     }
 
@@ -71,31 +70,31 @@ public class GameCompiler {
     private static File compile(String code, String className, String path) {
         boolean success = new File(path + "RuntimeContent\\").mkdir();
         if (!success && !new File(path + "RuntimeContent\\").exists()) {
-            GameCore.setErrorGameStateException(new IOException("Trying to create file on path" + path + "RuntimeContent\\ but failed, GameCompiler Error"));
+            Main.getClient().setErrorGameStateException(new IOException("Trying to create file on path" + path + "RuntimeContent\\ but failed, GameCompiler Error"));
         }
         File fi = new File(path + "RuntimeContent\\" + className + ".java");
         try {
             success = fi.createNewFile();
         } catch (IOException e) {
-            GameCore.setErrorGameStateException(e);
+            Main.getClient().setErrorGameStateException(e);
         }
         if (!success && !new File(path + "RuntimeContent\\" + className + ".java").exists()) {
-            GameCore.setErrorGameStateException(new IOException("Trying to create file on path" + path + "RuntimeContent\\" + className + ".java but failed, GameCompiler Error"));
+            Main.getClient().setErrorGameStateException(new IOException("Trying to create file on path" + path + "RuntimeContent\\" + className + ".java but failed, GameCompiler Error"));
         }
         try (PrintWriter writer = new PrintWriter(fi)) {
             writer.print(code);
         } catch (FileNotFoundException e) {
-            GameCore.setErrorGameStateException(e);
+            Main.getClient().setErrorGameStateException(e);
         }
 
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         int res = compiler.run(null, null, null, fi.getAbsolutePath());
         if (res != 0) {
-            GameCore.setErrorGameStateException(new IllegalArgumentException("Compiler error with code " + res + " on file " + fi.getAbsolutePath()));
+            Main.getClient().setErrorGameStateException(new IllegalArgumentException("Compiler error with code " + res + " on file " + fi.getAbsolutePath()));
         }
         File fiResult = new File(path + "RuntimeContent\\" + className + ".class");
         if (!fiResult.exists()) {
-            GameCore.setErrorGameStateException(new FileNotFoundException("Compiler result didn't result the expected file, file expected: " + fiResult.getAbsolutePath()));
+            Main.getClient().setErrorGameStateException(new FileNotFoundException("Compiler result didn't result the expected file, file expected: " + fiResult.getAbsolutePath()));
         }
         return fiResult;
     }

@@ -6,6 +6,7 @@ import GameContent.GameConfigLoader;
 import GameContent.GameContentExtractor;
 import GameContent.GameContentLoader;
 import GameContent.GameEvaluator;
+import GameUtils.Vec2i;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,55 +20,74 @@ public class GameCore extends JPanel {
         this.setPreferredSize(new Dimension(windowWidth,windowHeight));
         this.setBackground(new Color(255,255,255));
         this.setDoubleBuffered(true);
-        GameCore.windowWidth = windowWidth;
-        GameCore.windowHeight = windowHeight;
-        GameCore.gridWidth = windowWidth / 10;
-        GameCore.gridHeight = windowHeight / 10;
+        this.windowWidth = windowWidth;
+        this.windowHeight = windowHeight;
+        this.gridWidth = windowWidth / 10;
+        this.gridHeight = windowHeight / 10;
     }
 
-    private static final ArrayList<String> possibleRootFolders = new ArrayList<>();
-    private static int windowWidth = 0;
-    private static int windowHeight = 0;
-    private static int gridWidth = 0;
-    private static int gridHeight = 0;
-    private static GameStates gameState = GameStates.Loading;
-    private static Exception errorGameStateException;
+    private final GameGraphics graphics = new GameGraphics();
+    private final BuildingCore buildingCore = new BuildingCore();
 
-    public static GameStates getGameState() {
+    private final ArrayList<String> possibleRootFolders = new ArrayList<>();
+    private int windowWidth = 0;
+    private int windowHeight = 0;
+    private int gridWidth = 0;
+    private int gridHeight = 0;
+    private GameStates gameState = GameStates.Loading;
+    private Exception errorGameStateException;
+
+    public Vec2i getWindowDimensions() {
+        return new Vec2i(windowWidth, windowHeight);
+    }
+
+    public Vec2i getGridDimensions() {
+        return new Vec2i(gridWidth, gridHeight);
+    }
+
+    public BuildingCore buildingCore() {
+        return buildingCore;
+    }
+
+    public GameGraphics clientGraphics() {
+        return graphics;
+    }
+
+    public GameStates getGameState() {
         return gameState;
     }
 
-    public static void setErrorGameStateException(Exception errorGameStateException) {
+    public void setErrorGameStateException(Exception errorGameStateException) {
         if(gameState != GameStates.Error) {
-            GameCore.gameState = GameStates.Error;
-            GameCore.errorGameStateException = errorGameStateException;
+            this.gameState = GameStates.Error;
+            this.errorGameStateException = errorGameStateException;
         }
     }
 
-    public static Exception getErrorGameStateException() {
+    public Exception getErrorGameStateException() {
         return errorGameStateException;
     }
 
-    public static int getGridHeight() {
+    public int getGridHeight() {
         return gridHeight;
     }
 
-    public static int getGridWidth() {
+    public int getGridWidth() {
         return gridWidth;
     }
 
-    public static void addRootFolders(String path){
+    public void addRootFolders(String path){
         possibleRootFolders.add(path);
     }
 
-    public static ArrayList<String> getRootFolders() {
+    public ArrayList<String> getRootFolders() {
         return possibleRootFolders;
     }
 
     public void StartGameLoop(){
         prepareGameContent();
         startup();
-        gameState = GameStates.Game;
+        this.gameState = GameStates.Game;
         ScheduledExecutorService graphicsLoop = Executors.newSingleThreadScheduledExecutor();
         graphicsLoop.scheduleAtFixedRate(() -> {
                 currentFrame++;
@@ -79,8 +99,8 @@ public class GameCore extends JPanel {
             if(gameState != GameStates.Game){
                 return;
             }
-            BuildingCore.updateLeftRightTopBottom();
-            BuildingCore.updateRightLeftBottomTop();
+            buildingCore.updateLeftRightTopBottom();
+            buildingCore.updateRightLeftBottomTop();
         }, 0, 1000, TimeUnit.MILLISECONDS);
 
         ScheduledExecutorService workLoop = Executors.newSingleThreadScheduledExecutor();
@@ -88,7 +108,7 @@ public class GameCore extends JPanel {
             if(gameState != GameStates.Game){
                 return;
             }
-            BuildingCore.updateWorkAll();
+            buildingCore.updateWorkAll();
         }, 0, 50, TimeUnit.MILLISECONDS);
     }
 
@@ -100,7 +120,7 @@ public class GameCore extends JPanel {
         GameContentExtractor.findPossibleRootFolder();
     }
 
-    public static void startup() {
+    public void startup() {
         startMilli = System.currentTimeMillis();
 
         try{
@@ -121,15 +141,15 @@ public class GameCore extends JPanel {
         OreGeneration.GenerateOres();
     }
 
-    private static void registerEvaluatorAlias() throws NoSuchMethodException {
-        GameEvaluator.registerAlias(Main.game, GameCore.class.getDeclaredMethod("windowWidth"), "{windowWidth}");
-        GameEvaluator.registerAlias(Main.game, GameCore.class.getDeclaredMethod("windowHeight"), "{windowHeight}");
+    private void registerEvaluatorAlias() throws NoSuchMethodException {
+        GameEvaluator.registerAlias(Main.getClient(), GameCore.class.getDeclaredMethod("windowWidth"), "{windowWidth}");
+        GameEvaluator.registerAlias(Main.getClient(), GameCore.class.getDeclaredMethod("windowHeight"), "{windowHeight}");
     }
 
-    private static long startMilli;
-    private static long currentFrame = 0;
+    private long startMilli;
+    private long currentFrame = 0;
 
-    public static float getAverageFps(){
+    public float getAverageFps(){
         return currentFrame / ((System.currentTimeMillis() - startMilli) / 1000f);
     }
 
@@ -144,15 +164,15 @@ public class GameCore extends JPanel {
         switch (gameState){
 
             case Error:
-                GameGraphics.printErrorScreen(g);
+                graphics.printErrorScreen(g);
                 break;
             case Loading:
-                GameGraphics.printLoadingScreen(g);
+                graphics.printLoadingScreen(g);
                 break;
             case MainMenu:
                 break;
             case Game:
-                GameGraphics.printMainGame(g);
+                graphics.printMainGame(g);
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + gameState);
@@ -161,11 +181,11 @@ public class GameCore extends JPanel {
         g2.dispose();
     }
 
-    public static int windowWidth() {
+    public int windowWidth() {
         return windowWidth;
     }
 
-    public static int windowHeight() {
+    public int windowHeight() {
         return windowHeight;
     }
 }

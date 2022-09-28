@@ -1,10 +1,9 @@
 package GameContent;
 
-import GameCore.GameCore;
+import GameCore.Main;
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
-import GameCore.Main;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -14,7 +13,7 @@ import java.util.List;
 public class GameContentExtractor {
     public static void extractAll(String path) {
         if (!new File(path).exists()) {
-            GameCore.setErrorGameStateException(new FileNotFoundException(String.format("Didn't find file %s, unable to extract game content files!", path)));
+            Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("Didn't find file %s, unable to extract game content files!", path)));
         }
         ZipFile zip = new ZipFile(path);
         try {
@@ -28,7 +27,7 @@ public class GameContentExtractor {
                 }
             }
         } catch (ZipException e) {
-            GameCore.setErrorGameStateException(e);
+            Main.getClient().setErrorGameStateException(e);
         }
         try {
             zip.close();
@@ -38,7 +37,7 @@ public class GameContentExtractor {
 
     public static void findPossibleRootFolder() {
         String path = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-        GameCore.addRootFolders(new File(path).getParentFile().getAbsolutePath());
-        GameCore.addRootFolders(new File(path).getParentFile().getAbsolutePath() + "\\FactoryGame");
+        Main.getClient().addRootFolders(new File(path).getParentFile().getAbsolutePath());
+        Main.getClient().addRootFolders(new File(path).getParentFile().getAbsolutePath() + "\\FactoryGame");
     }
 }

@@ -25,7 +25,7 @@ public class Gui {
 
     public void render(int startX, int startY, Graphics g, Building b) {
         Graphics2D g2 = (Graphics2D) g;
-        g2.drawImage(image, startX, startY, image.getWidth(), image.getHeight(), GameGraphics.getMainObserver());
+        g2.drawImage(image, startX, startY, image.getWidth(), image.getHeight(), Main.getClient().clientGraphics().getMainObserver());
         for(DynamicGuiElement active : activeRenderers){
             active.drawDynamic(g2, b, startX, startY);
         }

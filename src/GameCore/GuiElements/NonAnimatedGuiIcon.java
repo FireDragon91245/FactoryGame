@@ -1,7 +1,7 @@
 package GameCore.GuiElements;
 
 import GameBuildings.Building;
-import GameCore.GameGraphics;
+import GameCore.Main;
 
 import java.awt.*;
 
@@ -22,7 +22,7 @@ public final class NonAnimatedGuiIcon implements DynamicGuiElement {
 
     @Override
     public void drawDynamic(Graphics2D g2, Building b, int x, int y) {
-        g2.drawImage(GameGraphics.getBuildingGuiImage(b.getType()), x + startX, y + startY, width, height, GameGraphics.getMainObserver());
+        g2.drawImage(Main.getClient().clientGraphics().getBuildingGuiImage(b.getType()), x + startX, y + startY, width, height, Main.getClient().clientGraphics().getMainObserver());
     }
 
 }

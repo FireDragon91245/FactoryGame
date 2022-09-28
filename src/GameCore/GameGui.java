@@ -1,7 +1,6 @@
 package GameCore;
 
 import GameBuildings.Building;
-import GameBuildings.BuildingCore;
 import GameBuildings.Buildings;
 import GameItems.Items;
 import GameUtils.Vec2i;
@@ -13,71 +12,71 @@ import java.util.HashMap;
 
 public class GameGui {
 
-    private static final Font numberFont = new Font("Century", Font.PLAIN, 20);
-    private static final HashMap<Items, BufferedImage> itemTextures = new HashMap<>();
-    private static final HashMap<Buildings, HashMap<Integer, BufferedImage>> mappedAnimationFrames = new HashMap<>();
-    private static final HashMap<GuiTypes, GuiBuilder> guiBuilders = new HashMap<>();
-    private static final HashMap<GuiTypes, Gui> guis = new HashMap<>();
+    private final Font numberFont = new Font("Century", Font.PLAIN, 20);
+    private final HashMap<Items, BufferedImage> itemTextures = new HashMap<>();
+    private final HashMap<Buildings, HashMap<Integer, BufferedImage>> mappedAnimationFrames = new HashMap<>();
+    private final HashMap<GuiTypes, GuiBuilder> guiBuilders = new HashMap<>();
+    private final HashMap<GuiTypes, Gui> guis = new HashMap<>();
 
-    public static void RenderBuildingInventoryGui(Graphics g, Vec2i buildingPos, Building building){
+    public void RenderBuildingInventoryGui(Graphics g, Vec2i buildingPos, Building building){
         int pixelPosX = buildingPos.x * 10;
-        if(pixelPosX > GameCore.windowWidth() / 2){
-            guis.get(BuildingCore.getBuildingConfig(building.getType()).guiType).render(pixelPosX - 400, buildingPos.y * 5, g, building);
+        if(pixelPosX > Main.getClient().windowWidth() / 2){
+            guis.get(Main.getClient().buildingCore().getBuildingConfig(building.getType()).guiType).render(pixelPosX - 400, buildingPos.y * 5, g, building);
         }else{
-            guis.get(BuildingCore.getBuildingConfig(building.getType()).guiType).render(pixelPosX + 10, buildingPos.y * 5, g, building);
+            guis.get(Main.getClient().buildingCore().getBuildingConfig(building.getType()).guiType).render(pixelPosX + 10, buildingPos.y * 5, g, building);
         }
     }
 
-    public static Font getNumberedFont(){
+    public Font getNumberedFont(){
         return numberFont;
     }
 
-    public static HashMap<GuiTypes, GuiBuilder> getGuiBuilders() {
+    public HashMap<GuiTypes, GuiBuilder> getGuiBuilders() {
         return guiBuilders;
     }
-    public static void addGuiBuilder(GuiTypes type, GuiBuilder builder){
+    public void addGuiBuilder(GuiTypes type, GuiBuilder builder){
         guiBuilders.put(type, builder);
     }
 
-    private static void drawBuildingGuiTextureFrom(int startX, int startY, Building b, Graphics g) {
-        if(!BuildingCore.getBuildingConfig(b.getType()).overwriteGuiImage) {
-            g.drawImage(GameGraphics.getBuildingGuiImage(b.getType()), startX, startY, BuildingCore.getBuildingConfig(b.getType()).guiTextureDimensions, BuildingCore.getBuildingConfig(b.getType()).guiTextureDimensions, GameGraphics.getMainObserver());
+    private void drawBuildingGuiTextureFrom(int startX, int startY, Building b, Graphics g) {
+        if(!Main.getClient().buildingCore().getBuildingConfig(b.getType()).overwriteGuiImage) {
+            g.drawImage(Main.getClient().clientGraphics().getBuildingGuiImage(b.getType()), startX, startY, Main.getClient().buildingCore().getBuildingConfig(b.getType()).guiTextureDimensions, Main.getClient().buildingCore().getBuildingConfig(b.getType()).guiTextureDimensions, Main.getClient().clientGraphics().getMainObserver());
         }else{
-            g.drawImage(mappedAnimationFrames.get(b.getType()).get(b.getWorkingProgress()), startX, startY, BuildingCore.getBuildingConfig(b.getType()).guiTextureDimensions, BuildingCore.getBuildingConfig(b.getType()).guiTextureDimensions, GameGraphics.getMainObserver());
+            g.drawImage(mappedAnimationFrames.get(b.getType()).get(b.getWorkingProgress()), startX, startY, Main.getClient().buildingCore().getBuildingConfig(b.getType()).guiTextureDimensions, Main.getClient().buildingCore().getBuildingConfig(b.getType()).guiTextureDimensions, Main.getClient().clientGraphics().getMainObserver());
         }
     }
 
-    public static BufferedImage getItemTexture(Items item){
+    public BufferedImage getItemTexture(Items item){
         return itemTextures.get(item);
     }
 
-    public static void addItemTexture(Items item, BufferedImage texture) {
+    public void addItemTexture(Items item, BufferedImage texture) {
         itemTextures.put(item, texture);
     }
 
-    public static void registerGuiAnimationForBuilding(HashMap<Integer, BufferedImage> mapAnimationFrames, Buildings b) {
+    public void registerGuiAnimationForBuilding(HashMap<Integer, BufferedImage> mapAnimationFrames, Buildings b) {
         mappedAnimationFrames.put(b, mapAnimationFrames);
     }
 
-    public static void addGui(GuiTypes type, Gui gui) {
+    public void addGui(GuiTypes type, Gui gui) {
         guis.put(type, gui);
     }
 
-    public static void sendMouseEventAll(MouseEvent event){
+    public void sendMouseEventAll(MouseEvent event){
         for(Gui gui : guis.values()){
             gui.sendMouseEvent(event);
         }
     }
 
-    public static Gui getGui(GuiTypes type) {
+    public Gui getGui(GuiTypes type) {
         return guis.getOrDefault(type, null);
     }
 
-    public static boolean hasGui(GuiTypes type) {
+    public boolean hasGui(GuiTypes type) {
         return guis.containsKey(type);
     }
 
-    public static void sendMouseMoveEventAll(MouseEvent event) {
+    public void sendMouseMoveEventAll(MouseEvent event) {
         for(Gui gui : guis.values()){
             gui.sendMouseMoveEvent(event);
         }

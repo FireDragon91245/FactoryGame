@@ -1,8 +1,7 @@
 package GameCore.GuiElements;
 
 import GameBuildings.Building;
-import GameCore.GameGraphics;
-import GameCore.GameGui;
+import GameCore.Main;
 import GameItems.Items;
 import GameUtils.GameUtils;
 
@@ -39,18 +38,18 @@ public final class OutputItemTexture implements DynamicGuiElement {
     @Override
     public void drawDynamic(Graphics2D g2, Building b, int x, int y) {
         if(b.getInventory().getOutputSlot(slot).getItemType() != Items.None && b.getInventory().getOutputSlot(slot).getItemType() != Items.Blocked) {
-            g2.drawImage(GameGui.getItemTexture(b.getInventory().getOutputSlot(slot).getItemType()), x + startX, y + startY, width, height, GameGraphics.getMainObserver());
-            g2.setFont(GameGui.getNumberedFont());
+            g2.drawImage(Main.getClient().clientGraphics().gui().getItemTexture(b.getInventory().getOutputSlot(slot).getItemType()), x + startX, y + startY, width, height, Main.getClient().clientGraphics().getMainObserver());
+            g2.setFont(Main.getClient().clientGraphics().gui().getNumberedFont());
             if(cacheFontMetrics){
                 if(charCount != GameUtils.GetCharCountOfInt(b.getInventory().getOutputSlot(slot).getItemCount())){
                     charCount = GameUtils.GetCharCountOfInt(b.getInventory().getOutputSlot(slot).getItemCount());
 
-                    textStartX = startX + width - g2.getFontMetrics(GameGui.getNumberedFont()).stringWidth("0".repeat(charCount)) + textOffsetX;
+                    textStartX = startX + width - g2.getFontMetrics(Main.getClient().clientGraphics().gui().getNumberedFont()).stringWidth("0".repeat(charCount)) + textOffsetX;
                     textStartY = startY + height + textOffsetY;
                 }
                 g2.drawString(String.valueOf(b.getInventory().getOutputSlot(slot).getItemCount()), x + textStartX, y + textStartY);
             }else{
-                g2.drawString(String.valueOf(b.getInventory().getOutputSlot(slot).getItemCount()), x + startX + width - g2.getFontMetrics(GameGui.getNumberedFont()).stringWidth("0".repeat(charCount)) + textOffsetX, y + startY + height + textOffsetY);
+                g2.drawString(String.valueOf(b.getInventory().getOutputSlot(slot).getItemCount()), x + startX + width - g2.getFontMetrics(Main.getClient().clientGraphics().gui().getNumberedFont()).stringWidth("0".repeat(charCount)) + textOffsetX, y + startY + height + textOffsetY);
             }
         }
     }

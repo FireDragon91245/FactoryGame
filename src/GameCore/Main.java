@@ -17,9 +17,10 @@ import java.util.Objects;
 
 public class Main {
 
-    public static final JFrame window = new JFrame();
-    public static final GameCore game = new GameCore(800, 800);
-    public static final Gson gson = createGson();
+    private static final JFrame window = new JFrame();
+    private static final GameCore game = new GameCore(800, 800);
+    private static final Gson masterGson = createMasterGson();
+
 
     public static void main(String[] args) {
         readArgs(args);
@@ -39,6 +40,9 @@ public class Main {
         window.setVisible(true);
 
         game.StartGameLoop();
+
+        //Todo: Make Client class that wraps the GameCore class and dont make everything static make game core have its own instances
+        //Todo: Replace the Gui . GetMainObserver with Main.game
     }
 
     private static void readArgs(String[] args) {
@@ -46,7 +50,7 @@ public class Main {
         }
     }
 
-    private static Gson createGson() {
+    private static Gson createMasterGson() {
         GsonBuilder builder = new GsonBuilder();
         builder.registerTypeAdapter(Color.class, new ColorDeserializer());
         builder.registerTypeAdapter(Font.class, new FontDeserializer());
@@ -55,5 +59,13 @@ public class Main {
         builder.registerTypeHierarchyAdapter(Building.class, new BuildingSerializer());
         builder.registerTypeAdapter(InteractiveGuiElement.class, new InteractiveGuiElementDeserializer());
         return builder.create();
+    }
+
+    public static GameCore getClient(){
+        return game;
+    }
+
+    public static Gson getGsonMaster(){
+        return masterGson;
     }
 }

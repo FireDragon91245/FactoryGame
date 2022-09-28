@@ -291,13 +291,13 @@
     "interactiveGuiComponents": []
   },
   "PlayingMainGui": {
-    "width": "${windowWidth} / 2",
+    "width": "${windowWidth}",
     "height": "${windowHeight}",
     "backgroundColor":{
-      "r": 135,
-      "g": 135,
-      "b": 135,
-      "a": 120
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 0
     },
     "numberFont": {
       "fontName": "Century",

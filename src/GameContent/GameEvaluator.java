@@ -1,6 +1,6 @@
 package GameContent;
 
-import GameCore.GameCore;
+import GameCore.Main;
 import com.fathzer.soft.javaluator.DoubleEvaluator;
 
 import java.lang.reflect.InvocationTargetException;
@@ -25,7 +25,7 @@ public class GameEvaluator {
             try {
                 ex = ex.replace(entry.getKey(), entry.getValue().getValue().invoke(entry.getValue().getKey(), (Object[]) null).toString());
             } catch (IllegalAccessException | InvocationTargetException e) {
-                GameCore.setErrorGameStateException(e);
+                Main.getClient().setErrorGameStateException(e);
             }
         }
         return ex;
@@ -35,7 +35,7 @@ public class GameEvaluator {
         if(instance.getClass() == getter.getDeclaringClass()) {
             aliases.put(alias, new HashMap.SimpleEntry<>(instance, getter));
         }else{
-            GameCore.setErrorGameStateException(new IllegalArgumentException("The method: " + getter.getName() + " declared in: " + getter.getDeclaringClass().getName() + " was tried to invoke on an instance of the class: " + instance.getClass().getName()));
+            Main.getClient().setErrorGameStateException(new IllegalArgumentException("The method: " + getter.getName() + " declared in: " + getter.getDeclaringClass().getName() + " was tried to invoke on an instance of the class: " + instance.getClass().getName()));
         }
     }
 }

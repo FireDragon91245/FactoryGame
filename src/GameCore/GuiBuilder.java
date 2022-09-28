@@ -41,7 +41,7 @@ public class GuiBuilder {
             boolean compile = true;
             for(char forbidden : GameUtils.getForbiddenFileNameChars()){
                 if(GameUtils.containsChar(element.getClassName(), forbidden)){
-                    GameCore.setErrorGameStateException(new IllegalArgumentException("The runtime compiled class: " + element.getClassName() + " contains illegal characters that cannot be applied to file names!"));
+                    Main.getClient().setErrorGameStateException(new IllegalArgumentException("The runtime compiled class: " + element.getClassName() + " contains illegal characters that cannot be applied to file names!"));
                     compile = false;
                 }
             }

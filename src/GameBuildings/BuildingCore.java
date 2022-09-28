@@ -1,6 +1,6 @@
 package GameBuildings;
 
-import GameCore.GameCore;
+import GameCore.Main;
 import GameCore.UpdateDirections;
 import GameItems.*;
 import GameUtils.Vec2i;
@@ -16,15 +16,15 @@ public class BuildingCore {
     private static final HashMap<Buildings, BuildingConfig> bConfig = new HashMap<>();
     private static final HashMap<Ores, OreConfig> oConfig = new HashMap<>();
 
-    public static void setBuildingConfig(Buildings type, BuildingConfig config) {
+    public void setBuildingConfig(Buildings type, BuildingConfig config) {
         bConfig.put(type, config);
     }
 
-    public static BuildingConfig getBuildingConfig(Buildings type) {
+    public BuildingConfig getBuildingConfig(Buildings type) {
         return bConfig.getOrDefault(type, null);
     }
 
-    public static Class<? extends Building> GetClassFromBuildingType(Buildings type) {
+    public Class<? extends Building> GetClassFromBuildingType(Buildings type) {
         return switch (type) {
             case Mine -> BuildingMine.class;
             case IronOre -> BuildingIronOre.class;
@@ -33,11 +33,11 @@ public class BuildingCore {
         };
     }
 
-    public static HashMap<Integer, HashMap<Integer, Building>> getAllBuildings() {
+    public HashMap<Integer, HashMap<Integer, Building>> getAllBuildings() {
         return buildings;
     }
 
-    public static void addBuilding(int x, int y, Building building) {
+    public void addBuilding(int x, int y, Building building) {
         if (!buildings.containsKey(x)) {
             buildings.put(x, new HashMap<>());
         }
@@ -46,7 +46,7 @@ public class BuildingCore {
         sendNeighborChange(x, y, building.getType());
     }
 
-    private static ArrayList<Buildings> getNeighborTypes(int x, int y) {
+    private ArrayList<Buildings> getNeighborTypes(int x, int y) {
         ArrayList<Buildings> types = new ArrayList<>(4);
         if (isInBounds(x - 1, y)) {
             Building b = getBuilding(x - 1, y);
@@ -75,7 +75,7 @@ public class BuildingCore {
         return types;
     }
 
-    private static void sendNeighborChange(int x, int y, Buildings type) {
+    private void sendNeighborChange(int x, int y, Buildings type) {
         if (isInBounds(x - 1, y)) {
             Building b = getBuilding(x - 1, y);
             if (b != null) {
@@ -102,58 +102,58 @@ public class BuildingCore {
         }
     }
 
-    private static boolean isInBounds(int x, int y) {
+    private boolean isInBounds(int x, int y) {
         if (x < 0 || y < 0) {
             return false;
         }
-        return x <= GameCore.windowWidth() / 10 && y <= GameCore.windowWidth() / 10;
+        return x <= Main.getClient().windowWidth() / 10 && y <= Main.getClient().windowWidth() / 10;
     }
 
-    public static Building getBuilding(int x, int y) {
+    public Building getBuilding(int x, int y) {
         if (buildings.containsKey(x)) {
             return buildings.get(x).getOrDefault(y, null);
         }
         return null;
     }
 
-    public static boolean isBuildingAtPos(int x, int y) {
+    public boolean isBuildingAtPos(int x, int y) {
         if (buildings.containsKey(x)) {
             return buildings.get(x).containsKey(y);
         }
         return false;
     }
 
-    public static OreConfig getOreConfig(Ores ore) {
+    public OreConfig getOreConfig(Ores ore) {
         return oConfig.getOrDefault(ore, null);
     }
 
-    public static void setOreConfig(Ores ore, OreConfig oreConfig) {
+    public void setOreConfig(Ores ore, OreConfig oreConfig) {
         oConfig.put(ore, oreConfig);
     }
 
-    public static boolean containsBuildingConfig(Buildings b) {
+    public boolean containsBuildingConfig(Buildings b) {
         return bConfig.containsKey(b);
     }
 
-    public static boolean containsOreConfig(Ores ore) {
+    public boolean containsOreConfig(Ores ore) {
         return oConfig.containsKey(ore);
     }
 
-    public static boolean isBuildingAtPos(Vec2i gridPos) {
+    public boolean isBuildingAtPos(Vec2i gridPos) {
         if (buildings.containsKey(gridPos.x)) {
             return buildings.get(gridPos.x).containsKey(gridPos.y);
         }
         return false;
     }
 
-    public static Building getBuilding(Vec2i pos) {
+    public Building getBuilding(Vec2i pos) {
         if (buildings.containsKey(pos.x)) {
             return buildings.get(pos.x).getOrDefault(pos.y, null);
         }
         return null;
     }
 
-    public static void handleDirectImportsToOutputFor(Vec2i pos, Building b) {
+    public void handleDirectImportsToOutputFor(Vec2i pos, Building b) {
         for(Directions dir : bConfig.get(b.getType()).inventoryConfig.importDirections){
             Vec2i currPos = pos.add(directionToRelativeCoordinate(dir));
             if(!isInBounds(currPos)){
@@ -195,9 +195,9 @@ public class BuildingCore {
                         continue;
                     }
                     if(invBuilding1.getOutputSlot(bSlot).getItemType() == invBuilding2.getOutputSlot(b2Slot).getItemType()){
-                        if(BuildingCore.getBuildingConfig(b.getType()).inventoryConfig.importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
-                            invBuilding1.getOutputSlot(bSlot).addItemCount(BuildingCore.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
-                            invBuilding2.getOutputSlot(b2Slot).removeItemCount(BuildingCore.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
+                        if(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
+                            invBuilding1.getOutputSlot(bSlot).addItemCount(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
+                            invBuilding2.getOutputSlot(b2Slot).removeItemCount(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
                         }else{
                             invBuilding1.getOutputSlot(bSlot).addItemCount(invBuilding2.getOutputSlot(b2Slot).getItemCount());
                             invBuilding2.setOutputSlot(b2Slot, new ItemStack(Items.None, 0));
@@ -210,9 +210,9 @@ public class BuildingCore {
                 if(!success){
                     for(int bSlot = 0; bSlot < bConfig.get(b.getType()).outputSlots; bSlot++){
                         if(invBuilding1.getOutputSlot(bSlot).getItemType() == Items.None){
-                            if(BuildingCore.getBuildingConfig(b.getType()).inventoryConfig.importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
-                                invBuilding1.setOutputSlot(bSlot, new ItemStack(invBuilding2.getOutputSlot(b2Slot).getItemType(), BuildingCore.getBuildingConfig(b.getType()).inventoryConfig.importSpeed));
-                                invBuilding2.getOutputSlot(b2Slot).removeItemCount(BuildingCore.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
+                            if(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
+                                invBuilding1.setOutputSlot(bSlot, new ItemStack(invBuilding2.getOutputSlot(b2Slot).getItemType(), this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed));
+                                invBuilding2.getOutputSlot(b2Slot).removeItemCount(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
                             }else{
                                 invBuilding1.setOutputSlot(bSlot, new ItemStack(invBuilding2.getOutputSlot(b2Slot).getItemType(), invBuilding2.getOutputSlot(b2Slot).getItemCount()));
                                 invBuilding2.setOutputSlot(b2Slot, new ItemStack(Items.None, 0));
@@ -229,7 +229,7 @@ public class BuildingCore {
         }
     }
 
-    public static void handleDirectImportsToOutputForWorkControlled(Vec2i pos, Building b) {
+    public void handleDirectImportsToOutputForWorkControlled(Vec2i pos, Building b) {
         for(Directions dir : bConfig.get(b.getType()).inventoryConfig.importDirections){
             Vec2i currPos = pos.add(directionToRelativeCoordinate(dir));
             if(!isInBounds(currPos)){
@@ -273,9 +273,9 @@ public class BuildingCore {
                         continue;
                     }
                     if(invBuilding1.getOutputSlot(bSlot).getItemType() == invBuilding2.getOutputSlot(b2Slot).getItemType()){
-                        if(BuildingCore.getBuildingConfig(b.getType()).inventoryConfig.importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
-                            invBuilding1.getOutputSlot(bSlot).addItemCount(BuildingCore.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
-                            invBuilding2.getOutputSlot(b2Slot).removeItemCount(BuildingCore.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
+                        if(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
+                            invBuilding1.getOutputSlot(bSlot).addItemCount(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
+                            invBuilding2.getOutputSlot(b2Slot).removeItemCount(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
                         }else{
                             invBuilding1.getOutputSlot(bSlot).addItemCount(invBuilding2.getOutputSlot(b2Slot).getItemCount());
                             invBuilding2.setOutputSlot(b2Slot, new ItemStack(Items.None, 0));
@@ -288,9 +288,9 @@ public class BuildingCore {
                 if(!success){
                     for(int bSlot = 0; bSlot < bConfig.get(b.getType()).outputSlots; bSlot++){
                         if(invBuilding1.getOutputSlot(bSlot).getItemType() == Items.None){
-                            if(BuildingCore.getBuildingConfig(b.getType()).inventoryConfig.importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
-                                invBuilding1.setOutputSlot(bSlot, new ItemStack(invBuilding2.getOutputSlot(b2Slot).getItemType(), BuildingCore.getBuildingConfig(b.getType()).inventoryConfig.importSpeed));
-                                invBuilding2.getOutputSlot(b2Slot).removeItemCount(BuildingCore.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
+                            if(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
+                                invBuilding1.setOutputSlot(bSlot, new ItemStack(invBuilding2.getOutputSlot(b2Slot).getItemType(), this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed));
+                                invBuilding2.getOutputSlot(b2Slot).removeItemCount(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
                             }else{
                                 invBuilding1.setOutputSlot(bSlot, new ItemStack(invBuilding2.getOutputSlot(b2Slot).getItemType(), invBuilding2.getOutputSlot(b2Slot).getItemCount()));
                                 invBuilding2.setOutputSlot(b2Slot, new ItemStack(Items.None, 0));
@@ -307,7 +307,7 @@ public class BuildingCore {
         }
     }
 
-    private static void handleImportsFor(Vec2i pos, Building b) {
+    private void handleImportsFor(Vec2i pos, Building b) {
         for(Directions dir : bConfig.get(b.getType()).inventoryConfig.importDirections){
             Vec2i currPos = pos.add(directionToRelativeCoordinate(dir));
             if(!isInBounds(currPos)){
@@ -349,9 +349,9 @@ public class BuildingCore {
                         continue;
                     }
                     if(invBuilding1.getInputSlot(bSlot).getItemType() == invBuilding2.getOutputSlot(b2Slot).getItemType()){
-                        if(BuildingCore.getBuildingConfig(b.getType()).inventoryConfig.importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
-                            invBuilding1.getInputSlot(bSlot).addItemCount(BuildingCore.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
-                            invBuilding2.getOutputSlot(b2Slot).removeItemCount(BuildingCore.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
+                        if(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
+                            invBuilding1.getInputSlot(bSlot).addItemCount(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
+                            invBuilding2.getOutputSlot(b2Slot).removeItemCount(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
                         }else{
                             invBuilding1.getInputSlot(bSlot).addItemCount(invBuilding2.getOutputSlot(b2Slot).getItemCount());
                             invBuilding2.setOutputSlot(b2Slot, new ItemStack(Items.None, 0));
@@ -364,9 +364,9 @@ public class BuildingCore {
                 if(!success){
                     for(int bSlot = 0; bSlot < bConfig.get(b.getType()).inputSlots; bSlot++){
                         if(invBuilding1.getInputSlot(bSlot).getItemType() == Items.None){
-                            if(BuildingCore.getBuildingConfig(b.getType()).inventoryConfig.importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
-                                invBuilding1.setInputSlot(bSlot, new ItemStack(invBuilding2.getOutputSlot(b2Slot).getItemType(), BuildingCore.getBuildingConfig(b.getType()).inventoryConfig.importSpeed));
-                                invBuilding2.getOutputSlot(b2Slot).removeItemCount(BuildingCore.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
+                            if(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
+                                invBuilding1.setInputSlot(bSlot, new ItemStack(invBuilding2.getOutputSlot(b2Slot).getItemType(), this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed));
+                                invBuilding2.getOutputSlot(b2Slot).removeItemCount(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
                             }else{
                                 invBuilding1.setInputSlot(bSlot, new ItemStack(invBuilding2.getOutputSlot(b2Slot).getItemType(), invBuilding2.getOutputSlot(b2Slot).getItemCount()));
                                 invBuilding2.setOutputSlot(b2Slot, new ItemStack(Items.None, 0));
@@ -383,11 +383,11 @@ public class BuildingCore {
         }
     }
 
-    private static double getItemStackVolume(ItemStack stack){
+    private double getItemStackVolume(ItemStack stack){
         return stack.getItemCount() * ItemMain.getItemConfig(stack.getItemType()).itemVolume;
     }
 
-    private static Directions getOppositeDirection(Directions dir) {
+    private Directions getOppositeDirection(Directions dir) {
         return switch (dir) {
             case Top -> Directions.Bottom;
             case Bottom -> Directions.Top;
@@ -396,14 +396,14 @@ public class BuildingCore {
         };
     }
 
-    private static boolean isInBounds(Vec2i pos) {
+    private boolean isInBounds(Vec2i pos) {
         if (pos.x < 0 || pos.y < 0) {
             return false;
         }
-        return pos.x <= GameCore.windowWidth() / 10 && pos.y <= GameCore.windowWidth() / 10;
+        return pos.x <= Main.getClient().windowWidth() / 10 && pos.y <= Main.getClient().windowWidth() / 10;
     }
 
-    private static Vec2i directionToRelativeCoordinate(Directions dir) {
+    private Vec2i directionToRelativeCoordinate(Directions dir) {
         return switch (dir) {
             case Top -> new Vec2i(0, -1);
             case Bottom -> new Vec2i(0, 1);
@@ -412,7 +412,7 @@ public class BuildingCore {
         };
     }
 
-    public static void updateWorkAll() {
+    public void updateWorkAll() {
         for(int x : buildings.keySet()){
             for(Map.Entry<Integer, Building> entry : buildings.get(x).entrySet()){
                 if(bConfig.get(entry.getValue().getType()).itemControllerType == ItemControllerTypes.ItemSystemWorkControlled){
@@ -422,7 +422,7 @@ public class BuildingCore {
         }
     }
 
-    public static void updateLeftRightTopBottom(){
+    public void updateLeftRightTopBottom(){
         for(int x : buildings.keySet()){
             for(Map.Entry<Integer, Building> entry : buildings.get(x).entrySet()){
                 if(bConfig.get(entry.getValue().getType()).updateDirection == UpdateDirections.LeftRightTopBottom){
@@ -436,12 +436,12 @@ public class BuildingCore {
         }
     }
 
-    public static void updateRightLeftBottomTop(){
-        for(int x = GameCore.getGridWidth(); x >= 0; x--){
+    public void updateRightLeftBottomTop(){
+        for(int x = Main.getClient().getGridWidth(); x >= 0; x--){
             if(!buildings.containsKey(x)){
                 continue;
             }
-            for(int y = GameCore.getGridHeight(); y >= 0; y--){
+            for(int y = Main.getClient().getGridHeight(); y >= 0; y--){
                 if(!buildings.get(x).containsKey(y)){
                     continue;
                 }

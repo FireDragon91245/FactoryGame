@@ -1,6 +1,6 @@
 package GameBuildings;
 
-import GameCore.GameCore;
+import GameCore.Main;
 import GameItems.Inventory;
 
 import java.util.ArrayList;
@@ -50,7 +50,7 @@ public class BuildingIronOre implements Building{
 
     @Override
     public int getWorkingProgress() {
-        GameCore.setErrorGameStateException(new IllegalStateException(String.format("Called getWorkingProgress() on a building (%s) that isn't work Controlled!", getType())));
+        Main.getClient().setErrorGameStateException(new IllegalStateException(String.format("Called getWorkingProgress() on a building (%s) that isn't work Controlled!", getType())));
         return -1;
     }
 

@@ -1,5 +1,6 @@
 package GameBuildings;
 
+import GameCore.Main;
 import GameItems.Inventory;
 import GameUtils.Vec2i;
 
@@ -33,10 +34,10 @@ public class BuildingMine implements Building {
     @Override
     public void work(int x, int y) {
         currentWorkingProgress++;
-        if(currentWorkingProgress >= BuildingCore.getBuildingConfig(getType()).workConfig.workInterval){
-            Building b = BuildingCore.getBuilding(x, y);
+        if(currentWorkingProgress >= Main.getClient().buildingCore().getBuildingConfig(getType()).workConfig.workInterval){
+            Building b = Main.getClient().buildingCore().getBuilding(x, y);
             if(b != null && inventoryTarget){
-                BuildingCore.handleDirectImportsToOutputForWorkControlled(new Vec2i(x, y), b);
+                Main.getClient().buildingCore().handleDirectImportsToOutputForWorkControlled(new Vec2i(x, y), b);
             }
             currentWorkingProgress = 0;
         }
@@ -68,7 +69,7 @@ public class BuildingMine implements Building {
         if(inventoryTarget){
             return;
         }
-        if(Arrays.stream(BuildingCore.getBuildingConfig(getType()).inventoryConfig.thisImportsFrom).anyMatch(x -> x == type)){
+        if(Arrays.stream(Main.getClient().buildingCore().getBuildingConfig(getType()).inventoryConfig.thisImportsFrom).anyMatch(x -> x == type)){
             inventoryTarget = true;
         }
     }
@@ -81,7 +82,7 @@ public class BuildingMine implements Building {
     @Override
     public void updateSelfInventoryTargetAfterPlace(ArrayList<Buildings> neighborTypes) {
         for(Buildings building : neighborTypes){
-            if(Arrays.stream(BuildingCore.getBuildingConfig(getType()).inventoryConfig.thisImportsFrom).anyMatch(x -> x == building)){
+            if(Arrays.stream(Main.getClient().buildingCore().getBuildingConfig(getType()).inventoryConfig.thisImportsFrom).anyMatch(x -> x == building)){
                 inventoryTarget = true;
             }
         }
