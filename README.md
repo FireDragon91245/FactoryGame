@@ -9,7 +9,11 @@
 
   - Anotations Libary by JetBrains
 
-# Modding (Only Parcial Implementet)
+# Modding (Only Parcial Implementet NVM Everything changed again)
+  **Explaination: I dont wanted to have mods be seperatly loaded from the core game content, i dont wantet the core game content to be hard coded,**
+  **so i not only startet working on the modding system but also i startet to convert the core content to a mod,**
+  **this changed and defined how the moding systen is going to work, when the core content is convertet to a mod i will update this moding Documentation**
+
   Modding suport is planned and parcial implementet
 
   *Ignore the documentation below as it is only for the already implementet features that only work on core game files*
