@@ -1,16 +1,15 @@
 package GameCore;
 
 import GameBuildings.BuildingCore;
-import GameBuildings.OreGeneration;
-import GameContent.GameConfigLoader;
-import GameContent.GameContentExtractor;
-import GameContent.GameContentLoader;
-import GameContent.GameEvaluator;
+import GameContent.*;
 import GameUtils.Vec2i;
 
 import javax.swing.*;
 import java.awt.*;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -28,8 +27,15 @@ public class GameCore extends JPanel {
 
     private final GameGraphics graphics = new GameGraphics();
     private final BuildingCore buildingCore = new BuildingCore();
+    private final GameConfigLoader configLoader = new GameConfigLoader();
+    private final GameContentLoader contentLoader = new GameContentLoader();
+    private final GamePackageLoader packageLoader = new GamePackageLoader();
 
-    private final ArrayList<String> possibleRootFolders = new ArrayList<>();
+    private final HashMap<String, GamePackage> packageConfigs = new HashMap<>();
+    private final HashMap<String, PackageCore> packageCores = new HashMap<>();
+    private final ArrayList<PackageCore> packageTickUpdated = new ArrayList<>();
+    private final ArrayList<PackageCore> packageFrameUpdated = new ArrayList<>();
+
     private int windowWidth = 0;
     private int windowHeight = 0;
     private int gridWidth = 0;
@@ -76,18 +82,9 @@ public class GameCore extends JPanel {
         return gridWidth;
     }
 
-    public void addRootFolders(String path){
-        possibleRootFolders.add(path);
-    }
-
-    public ArrayList<String> getRootFolders() {
-        return possibleRootFolders;
-    }
-
     public void StartGameLoop(){
-        prepareGameContent();
-        startup();
         this.gameState = GameStates.Game;
+        startup();
         ScheduledExecutorService graphicsLoop = Executors.newSingleThreadScheduledExecutor();
         graphicsLoop.scheduleAtFixedRate(() -> {
                 currentFrame++;
@@ -112,33 +109,45 @@ public class GameCore extends JPanel {
         }, 0, 50, TimeUnit.MILLISECONDS);
     }
 
-    private void prepareGameContent() {
-        String path = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-        if(path.endsWith(".jar") || path.endsWith(".zip")){
-            GameContentExtractor.extractAll(path);
-        }
-        GameContentExtractor.findPossibleRootFolder();
-    }
-
     public void startup() {
+        //average fps calculation setup
         startMilli = System.currentTimeMillis();
 
+        //prepare config loading (setting evaluated string aliases)
         try{
             registerEvaluatorAlias();
         }catch (NoSuchMethodException e){
             setErrorGameStateException(e);
         }
 
-        GameConfigLoader.loadGuiConfig("\\GameCore\\Guis.json");
-        GameContentLoader.BuildGuis();
-        GameConfigLoader.loadBuildingConfig("\\GameContent\\BuildingConfig.json");
-        GameContentLoader.loadBuildingTextures();
-        GameContentLoader.loadBuildingGuiTextures();
-        GameContentLoader.loadAndMapGuiAnimationFrames();
-        GameConfigLoader.loadItemConfig("\\GameContent\\ItemConfig.json");
-        GameContentLoader.loadItemTextures();
-        GameConfigLoader.loadOreConfig("\\GameContent\\OreConfig.json");
-        OreGeneration.GenerateOres();
+        //load configs
+        configLoader.loadGuiConfig("\\GameCore\\Guis.json");
+        configLoader.loadBuildingConfig("\\GameContent\\BuildingConfig.json");
+        configLoader.loadItemConfig("\\GameContent\\ItemConfig.json");
+        configLoader.loadOreConfig("\\GameContent\\OreConfig.json");
+
+        //load game content from configs
+        contentLoader.BuildGuis(this);
+        contentLoader.loadBuildingTextures(this);
+        contentLoader.loadBuildingGuiTextures(this);
+        contentLoader.loadAndMapGuiAnimationFrames(this);
+        contentLoader.loadItemTextures(this);
+
+        //ready playing field (temporary until main menu)
+        buildingCore.populate();
+
+        packageLoader.loadPackages();
+
+        for(Map.Entry<String, PackageCore> entry : packageCores.entrySet()){
+            entry.getValue().initialize();
+
+            if(packageConfigs.get(entry.getKey()).tickUpdates){
+                packageFrameUpdated.add(entry.getValue());
+            }
+            if(packageConfigs.get(entry.getKey()).frameUpdates){
+                packageFrameUpdated.add(entry.getValue());
+            }
+        }
     }
 
     private void registerEvaluatorAlias() throws NoSuchMethodException {
@@ -161,6 +170,9 @@ public class GameCore extends JPanel {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
 
+        for(PackageCore core : packageFrameUpdated){
+            core.frame(g);
+        }
         switch (gameState){
 
             case Error:
@@ -187,5 +199,15 @@ public class GameCore extends JPanel {
 
     public int windowHeight() {
         return windowHeight;
+    }
+
+    public void registerPackage(String name, GamePackage packageConfig, Class<? extends PackageCore> packageCoreClass) {
+        packageConfigs.put(name, packageConfig);
+        try {
+            PackageCore coreInstance = packageCoreClass.getDeclaredConstructor().newInstance();
+            packageCores.put(name, coreInstance);
+        } catch (InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            setErrorGameStateException(e);
+        }
     }
 }

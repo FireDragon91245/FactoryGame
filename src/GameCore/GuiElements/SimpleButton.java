@@ -34,19 +34,26 @@ public class SimpleButton implements InteractiveGuiElement {
         instance.interact();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void compile() {
-        Class<? extends Intractable> interactionClass = GameCompiler.compileCode(interactionCode, className);
+        Class<?> interactionClass = GameCompiler.compileCode(interactionCode, className);
         if (interactionClass == null) {
-            Main.getClient().setErrorGameStateException(new NullPointerException("The result of the runtime compilation for class name: " + className + " resulted in a null value"));
-        } else {
-            try {
-                instance = interactionClass.getDeclaredConstructor().newInstance();
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                     NoSuchMethodException e) {
-                Main.getClient().setErrorGameStateException(e);
-            }
+            Main.getClient().setErrorGameStateException(new NullPointerException(String.format("loading the class %s for a SimpleButton resulted in null!", className)));
+            return;
         }
+        if (!Intractable.class.isAssignableFrom(interactionClass)) {
+            Main.getClient().setErrorGameStateException(new ClassCastException(String.format("The class %s for a simple button did not implement %s!", className, Intractable.class.getCanonicalName())));
+            return;
+        }
+
+        try {
+            instance = ((Class<? extends Intractable>)interactionClass).getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                 NoSuchMethodException e) {
+            Main.getClient().setErrorGameStateException(e);
+        }
+
         if (instance == null) {
             Main.getClient().setErrorGameStateException(new NullPointerException("The result of the instantiation of the runtime compiled class: " + className + " resulted in a null instance"));
         }

@@ -1,6 +1,5 @@
 package GameContent;
 
-import GameCore.GuiElements.Intractable;
 import GameCore.Main;
 
 import javax.tools.JavaCompiler;
@@ -14,7 +13,7 @@ import java.net.URLClassLoader;
 
 public class GameCompiler {
 
-    public static boolean needsCompiling(String code, String className, String path) {
+    private static boolean needsCompiling(String code, String className, String path) {
         if (new File(path + "RuntimeContent\\" + className + ".java").exists()) {
             if (!new File(path + "RuntimeContent\\" + className + ".class").exists()) {
                 return true;
@@ -28,7 +27,7 @@ public class GameCompiler {
         return true;
     }
 
-    public static Class<? extends Intractable> compileCode(String code, String className) {
+    public static Class<?> compileCode(String code, String className) {
         String path = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
         if (path.endsWith(".jar") || path.endsWith(".zip")) {
             path = new File(Main.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParentFile().getAbsolutePath() + "\\";
@@ -44,22 +43,16 @@ public class GameCompiler {
             return null;
         }
 
-        return loadClass(fiResult, path, className);
+        return loadClass(fiResult, path, "RuntimeContent." + className);
     }
 
-    @SuppressWarnings("unchecked")
-    private static Class<? extends Intractable> loadClass(File fiResult, String path, String className) {
+    public static Class<?> loadClass(File fiResult, String path, String className) {
         try (URLClassLoader loader = URLClassLoader.newInstance(new URL[]{new File(path).toURI().toURL()})) {
-            Class<?> cls = Class.forName("RuntimeContent." + className, true, loader);
-            if (!Intractable.class.isAssignableFrom(cls)) {
-                Main.getClient().setErrorGameStateException(new ClassCastException("Cannot cast the runtime compiled class: " + className + " from file: " + fiResult.getAbsolutePath() + " to the required interface: " + Intractable.class.getName()));
-                return null;
-            }
-            return (Class<? extends Intractable>) cls;
+            return Class.forName(className, true, loader);
         } catch (IOException | ClassNotFoundException e) {
             Main.getClient().setErrorGameStateException(e);
         }
-        Main.getClient().setErrorGameStateException(new ClassNotFoundException("Couldn't find the runtime compiled class: " + className + " int the expected locations! Expected Location: " + fiResult.getAbsolutePath()));
+        Main.getClient().setErrorGameStateException(new ClassNotFoundException("Couldn't find the class: " + className + " int the expected locations! Expected Location: " + fiResult.getAbsolutePath()));
         return null;
     }
 
@@ -97,5 +90,24 @@ public class GameCompiler {
             Main.getClient().setErrorGameStateException(new FileNotFoundException("Compiler result didn't result the expected file, file expected: " + fiResult.getAbsolutePath()));
         }
         return fiResult;
+    }
+
+    public static Class<?> compileFile(File sourceFile, String rootFolder, String className) {
+        if(sourceFile.exists()){
+            Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("The file to compile at %s does not exist!", sourceFile.getPath())));
+        }
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        int res = compiler.run(null, null, null, sourceFile.getAbsolutePath());
+        if(res != 0){
+            Main.getClient().setErrorGameStateException(new IllegalArgumentException(String.format("While compiling %s class a compiler error occurred, target File: %s", className, sourceFile.getAbsolutePath())));
+            return null;
+        }
+        File result = new File(rootFolder + className + ".class");
+        if(!result.exists()){
+            Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("Compiling the class %s resulted in a missing .class file! Target File: %s", className, sourceFile.getAbsolutePath())));
+            return null;
+        }
+
+        return loadClass(result, rootFolder,"RuntimeContent." + className + "." + className);
     }
 }

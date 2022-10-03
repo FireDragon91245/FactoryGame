@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class OreGeneration {
 
 
-    public static void GenerateOres() {
+    public void GenerateOres(BuildingCore generateTo) {
         OreDataSet[][] ores = GenerateOreMap();
         for (int i = 0; i < ores.length; i++) {
             for (int j = 0; j < ores[0].length; j++) {
@@ -31,13 +31,13 @@ public class OreGeneration {
                 }
                 building.overwriteInventory(generateInventory(ores[i][j].oreType, ores[i][j].type, ores[i][j].dist));
                 if(!building.getInventory().isOutputEmpty()) {
-                    Main.getClient().buildingCore().addBuilding(i, j, building);
+                    generateTo.addBuilding(i, j, building);
                 }
             }
         }
     }
 
-    private static Inventory generateInventory(Ores ore, Buildings building, double dist) {
+    private Inventory generateInventory(Ores ore, Buildings building, double dist) {
         Inventory inv = new Inventory(building);
         if(Main.getClient().buildingCore().getOreConfig(ore).generatesItem == Items.None){
             return inv;
@@ -54,7 +54,7 @@ public class OreGeneration {
         return inv;
     }
 
-    public static OreDataSet[][] GenerateOreMap() {
+    public OreDataSet[][] GenerateOreMap() {
         OreDataSet[][] ores = new OreDataSet[Main.getClient().windowWidth() / 10][Main.getClient().windowHeight() / 10];
         ConcurrentHashMap<Ores, ConcurrentLinkedQueue<Vec2i>> oreNodeRoots = new ConcurrentHashMap<>();
         for (Ores ore : Ores.values()) {
@@ -99,11 +99,11 @@ public class OreGeneration {
     }
 
 
-    public static int RandomNumber(Random rand, int min, int max){
+    public int RandomNumber(Random rand, int min, int max){
         return rand.nextInt(max - min) + min;
     }
 
-    public static OreDataSet[][] GenerateLinearOrePatch(Vec2i pos, Ores ore, OreDataSet[][] ores) {
+    public OreDataSet[][] GenerateLinearOrePatch(Vec2i pos, Ores ore, OreDataSet[][] ores) {
         Random rand = new Random();
         Vec2i pos2 = pos.add(RandomNumber(rand, - Main.getClient().buildingCore().getOreConfig(ore).maxSpread, Main.getClient().buildingCore().getOreConfig(ore).maxSpread),
                 RandomNumber(rand, - Main.getClient().buildingCore().getOreConfig(ore).maxSpread / 2, Main.getClient().buildingCore().getOreConfig(ore).maxSpread / 2)
@@ -138,7 +138,7 @@ public class OreGeneration {
         return ores;
     }
 
-    private static OreDataSet[][] GenerateCirculatOrePatchAround(Vec2i pos, OreDataSet[][] ores, int spread, double initChance, double falloff, Buildings type, Ores oreType) {
+    private OreDataSet[][] GenerateCirculatOrePatchAround(Vec2i pos, OreDataSet[][] ores, int spread, double initChance, double falloff, Buildings type, Ores oreType) {
         ConcurrentLinkedQueue<Vec2i> toTest = new ConcurrentLinkedQueue<>();
         ConcurrentLinkedQueue<Vec2i> placed = new ConcurrentLinkedQueue<>();
         placed.add(pos);
@@ -205,7 +205,7 @@ public class OreGeneration {
         return ores;
     }
 
-    private static OreDataSet[][] GenerateCircularOrePatch(Vec2i pos, Ores ore, OreDataSet[][] ores) {
+    private OreDataSet[][] GenerateCircularOrePatch(Vec2i pos, Ores ore, OreDataSet[][] ores) {
         ConcurrentLinkedQueue<Vec2i> toTest = new ConcurrentLinkedQueue<>();
         ConcurrentLinkedQueue<Vec2i> placed = new ConcurrentLinkedQueue<>();
         placed.add(pos);
@@ -272,7 +272,7 @@ public class OreGeneration {
         return ores;
     }
 
-    public static boolean isChance(double percentage) {
+    public boolean isChance(double percentage) {
         double newPercentage = Math.round(percentage * 100) / 100.0;
         if (percentage < 0) {
             return false;
@@ -288,7 +288,7 @@ public class OreGeneration {
         return res < newPercentage;
     }
 
-    public static class OreDataSet {
+    public class OreDataSet {
         public final double dist;
         public final Buildings type;
         public final Ores oreType;

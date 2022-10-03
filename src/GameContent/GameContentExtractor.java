@@ -8,10 +8,11 @@ import net.lingala.zip4j.model.FileHeader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class GameContentExtractor {
-    public static void extractAll(String path) {
+    public void extractAll(String path) {
         if (!new File(path).exists()) {
             Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("Didn't find file %s, unable to extract game content files!", path)));
         }
@@ -35,9 +36,11 @@ public class GameContentExtractor {
         }
     }
 
-    public static void findPossibleRootFolder() {
+    public ArrayList<String> findPossibleRootFolder() {
+        ArrayList<String> list = new ArrayList<>();
         String path = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-        Main.getClient().addRootFolders(new File(path).getParentFile().getAbsolutePath());
-        Main.getClient().addRootFolders(new File(path).getParentFile().getAbsolutePath() + "\\FactoryGame");
+        list.add(new File(path).getParentFile().getAbsolutePath());
+        list.add(new File(path).getParentFile().getAbsolutePath() + "\\FactoryGame");
+        return list;
     }
 }

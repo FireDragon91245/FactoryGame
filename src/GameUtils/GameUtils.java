@@ -1,39 +1,31 @@
 package GameUtils;
 
+import java.io.*;
 import java.util.ArrayList;
 
 public class GameUtils {
 
 
-
     private static final char[] forbiddenCharacters = {'<', '>', ':', '"', '/', '\\', '|', '?', '*'};
 
-    public static char[] getForbiddenFileNameChars(){
+    public static char[] getForbiddenFileNameChars() {
         return forbiddenCharacters;
     }
 
-    public static ArrayList<String> ChopValue (String value, int valueLength)
-    {
+    public static ArrayList<String> ChopValue(String value, int valueLength) {
         String rest = value;
         ArrayList<String> list = new ArrayList<>();
         int limit = 0;
-        while (limit++ < 100)
-        {
+        while (limit++ < 100) {
             IndexInformation info = FindLastSpaceBeforeIndex(rest, valueLength);
-            if (info.found)
-            {
+            if (info.found) {
                 list.add(rest.substring(0, info.index));
                 rest = rest.substring(info.index + 1);
-            }
-                    else
-            {
-                if (info.index == -1)
-                {
+            } else {
+                if (info.index == -1) {
                     list.add(rest.substring(0, valueLength - 1) + '-');
                     rest = rest.substring(valueLength - 1);
-                }
-                else
-                {
+                } else {
                     list.add(rest);
                     break;
                 }
@@ -45,7 +37,7 @@ public class GameUtils {
 
     public static String listToString(ArrayList<?> list) {
         StringBuilder sb = new StringBuilder("[");
-        for(Object o : list){
+        for (Object o : list) {
             sb.append(o.toString());
             sb.append(", ");
         }
@@ -53,17 +45,13 @@ public class GameUtils {
         return sb.toString();
     }
 
-    private static IndexInformation FindLastSpaceBeforeIndex(String s, int index)
-    {
-        if (index >= s.length())
-        {
+    private static IndexInformation FindLastSpaceBeforeIndex(String s, int index) {
+        if (index >= s.length()) {
             return new IndexInformation(false, -2);
         }
 
-        for (int i = index ; i >= 0 ; i--)
-        {
-            if (s.charAt(i) == ' ')
-            {
+        for (int i = index; i >= 0; i--) {
+            if (s.charAt(i) == ' ') {
                 return new IndexInformation(true, i);
             }
         }
@@ -71,17 +59,7 @@ public class GameUtils {
         return new IndexInformation(false, -1);
     }
 
-    private static class IndexInformation{
-        public final boolean found;
-        public final int index;
-
-        private IndexInformation(boolean found, int index) {
-            this.found = found;
-            this.index = index;
-        }
-    }
-
-    public static int GetCharCountOfInt(int number){
+    public static int GetCharCountOfInt(int number) {
         if (number < 100000) {
             if (number < 100) {
                 if (number < 10) {
@@ -121,12 +99,41 @@ public class GameUtils {
         }
     }
 
-    public static boolean containsChar(String s, char c){
-        for(char chr : s.toCharArray()){
-            if(chr == c){
+    public static boolean containsChar(String s, char c) {
+        for (char chr : s.toCharArray()) {
+            if (chr == c) {
                 return true;
             }
         }
         return false;
+    }
+
+    public static String readFile(String absolutePath) throws IOException {
+        if (!new File(absolutePath).exists()) {
+            throw new FileNotFoundException(String.format("File to read was not found at the expected location %s", absolutePath));
+        }
+
+        BufferedReader reader = new BufferedReader(new FileReader(absolutePath));
+
+        StringBuilder builder = new StringBuilder();
+        String line = reader.readLine();
+
+        while (line != null) {
+            builder.append(line);
+            builder.append(System.lineSeparator());
+            line = reader.readLine();
+        }
+
+        return builder.toString();
+    }
+
+    private static class IndexInformation {
+        public final boolean found;
+        public final int index;
+
+        private IndexInformation(boolean found, int index) {
+            this.found = found;
+            this.index = index;
+        }
     }
 }

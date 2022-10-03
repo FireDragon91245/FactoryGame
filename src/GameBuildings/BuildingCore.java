@@ -12,9 +12,10 @@ import java.util.Map;
 
 public class BuildingCore {
 
-    private static final HashMap<Integer, HashMap<Integer, Building>> buildings = new HashMap<>();
-    private static final HashMap<Buildings, BuildingConfig> bConfig = new HashMap<>();
-    private static final HashMap<Ores, OreConfig> oConfig = new HashMap<>();
+    private final OreGeneration oreGenerator = new OreGeneration();
+    private final HashMap<Integer, HashMap<Integer, Building>> buildings = new HashMap<>();
+    private final HashMap<Buildings, BuildingConfig> bConfig = new HashMap<>();
+    private final HashMap<Ores, OreConfig> oConfig = new HashMap<>();
 
     public void setBuildingConfig(Buildings type, BuildingConfig config) {
         bConfig.put(type, config);
@@ -31,6 +32,10 @@ public class BuildingCore {
             case CoalOre -> BuildingCoalOre.class;
             default -> throw new IllegalStateException("Unexpected value: " + type);
         };
+    }
+
+    public void populate(){
+        oreGenerator.GenerateOres(this);
     }
 
     public HashMap<Integer, HashMap<Integer, Building>> getAllBuildings() {

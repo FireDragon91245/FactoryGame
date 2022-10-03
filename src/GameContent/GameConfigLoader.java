@@ -16,7 +16,7 @@ import java.io.*;
 public class GameConfigLoader {
 
 
-    public static void loadBuildingConfig(String path) {
+    public void loadBuildingConfig(String path) {
         String jsonString = readFile(path);
         if (jsonString == null) {
             Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Result of reading file %s returned null", path)));
@@ -39,14 +39,14 @@ public class GameConfigLoader {
 
     public static String readFile(String path) {
         String fullFilePath = path;
-        for (String p : Main.getClient().getRootFolders()) {
+        for (String p : Main.getRootFolders()) {
             if (new File(p + path).exists()) {
                 fullFilePath = p + path;
                 break;
             }
         }
         if (fullFilePath.equalsIgnoreCase(path)) {
-            Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("Config file was not found on any root path, root paths: %s", GameUtils.listToString(Main.getClient().getRootFolders()))));
+            Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("Config file was not found on any root path, root paths: %s", GameUtils.listToString(Main.getRootFolders()))));
         }
         String jsonString = null;
         BufferedReader reader;
@@ -74,7 +74,7 @@ public class GameConfigLoader {
         return jsonString;
     }
 
-    public static void loadOreConfig(String path) {
+    public void loadOreConfig(String path) {
         String jsonString = readFile(path);
         if (jsonString == null) {
             Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Result of reading file %s returned null", path)));
@@ -95,7 +95,7 @@ public class GameConfigLoader {
         }
     }
 
-    public static void loadItemConfig(String path) {
+    public void loadItemConfig(String path) {
         String jsonString = readFile(path);
         if (jsonString == null) {
             Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Result of reading file %s returned null", path)));
@@ -118,7 +118,7 @@ public class GameConfigLoader {
         }
     }
 
-    public static void loadGuiConfig(String path) {
+    public void loadGuiConfig(String path) {
         String jsonString = readFile(path);
         if (jsonString == null) {
             Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Result of reading file %s returned null", path)));

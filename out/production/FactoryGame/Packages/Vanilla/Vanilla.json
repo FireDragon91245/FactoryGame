@@ -1,0 +1,22 @@
+{
+  "buildingCfg": "Packages\\Vanilla\\BuildingConfig.json",
+  "guiCfg": "Packages\\Vanilla\\GuiConfig.json",
+  "oreCfg": "Packages\\Vanilla\\OreConfig.json",
+  "ItemCfg": "Packages\\Vanilla\\ItemConfig.json",
+  "frameUpdates": true,
+  "tickUpdates": false,
+  "packageVersion": 1.0,
+  "packageDisplayName": "Default Content",
+  "packageDescription": [
+    "This package comes with the game and provides the core content of the game!",
+    "WARNING: Removing this package will crash the game on startup because the ore generation relies on the in this package provided building types,",
+    "the ore generation will also get outsourced to this package in package version 2.0 so its save to remove IN PACKAGE VERSION 2.0."
+  ],
+  "dependencies": [
+    {
+      "packageName": "GameCore",
+      "packageMinVersion": 1.0,
+      "packageMaxVersion": -1.0
+    }
+  ]
+}

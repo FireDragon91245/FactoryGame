@@ -1,6 +1,7 @@
 package GameCore;
 
 import GameBuildings.Building;
+import GameContent.GameContentExtractor;
 import GameConverter.*;
 import GameCore.GuiElements.DynamicGuiElement;
 import GameCore.GuiElements.InteractiveGuiElement;
@@ -12,6 +13,8 @@ import com.google.gson.GsonBuilder;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -20,6 +23,9 @@ public class Main {
     private static final JFrame window = new JFrame();
     private static final GameCore game = new GameCore(800, 800);
     private static final Gson masterGson = createMasterGson();
+    private static final GameContentExtractor contentExtractor = new GameContentExtractor();
+    private static ArrayList<String> rootFolders = new ArrayList<>();
+    public static final String gamePath = getGamePath();
 
 
     public static void main(String[] args) {
@@ -39,6 +45,7 @@ public class Main {
         window.setLocationRelativeTo(null);
         window.setVisible(true);
 
+        prepareGameContent();
         game.StartGameLoop();
 
         //Todo: Make Client class that wraps the GameCore class and dont make everything static make game core have its own instances
@@ -67,5 +74,25 @@ public class Main {
 
     public static Gson getGsonMaster(){
         return masterGson;
+    }
+
+    private static void prepareGameContent() {
+        String path = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+        if(path.endsWith(".jar") || path.endsWith(".zip")){
+            contentExtractor.extractAll(path);
+        }
+        rootFolders = contentExtractor.findPossibleRootFolder();
+    }
+
+    public static ArrayList<String> getRootFolders(){
+        return rootFolders;
+    }
+
+    private static String getGamePath() {
+        String path = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+        if(path.endsWith(".jar")){
+            return new File(path).getParentFile().getAbsolutePath();
+        }
+        return path;
     }
 }
