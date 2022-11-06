@@ -31,6 +31,7 @@ public class GameCore extends JPanel {
     private final GameContentLoader contentLoader = new GameContentLoader();
     private final GamePackageLoader packageLoader = new GamePackageLoader();
 
+    private final ArrayList<Exception> exceptions = new ArrayList<>();
     private final HashMap<String, GamePackage> packageConfigs = new HashMap<>();
     private final HashMap<String, PackageCore> packageCores = new HashMap<>();
     private final ArrayList<PackageCore> packageTickUpdated = new ArrayList<>();
@@ -41,7 +42,6 @@ public class GameCore extends JPanel {
     private int gridWidth = 0;
     private int gridHeight = 0;
     private GameStates gameState = GameStates.Loading;
-    private Exception errorGameStateException;
 
     public Vec2i getWindowDimensions() {
         return new Vec2i(windowWidth, windowHeight);
@@ -64,14 +64,12 @@ public class GameCore extends JPanel {
     }
 
     public void setErrorGameStateException(Exception errorGameStateException) {
-        if(gameState != GameStates.Error) {
-            this.gameState = GameStates.Error;
-            this.errorGameStateException = errorGameStateException;
-        }
+        this.gameState = GameStates.Error;
+        this.exceptions.add(errorGameStateException);
     }
 
-    public Exception getErrorGameStateException() {
-        return errorGameStateException;
+    public ArrayList<Exception> getErrorGameStateExceptions() {
+        return exceptions;
     }
 
     public int getGridHeight() {
@@ -120,24 +118,7 @@ public class GameCore extends JPanel {
             setErrorGameStateException(e);
         }
 
-        //load configs
-        configLoader.loadGuiConfig("\\GameCore\\Guis.json");
-        configLoader.loadBuildingConfig("\\GameContent\\BuildingConfig.json");
-        configLoader.loadItemConfig("\\GameContent\\ItemConfig.json");
-        configLoader.loadOreConfig("\\GameContent\\OreConfig.json");
-
-        //load game content from configs
-        contentLoader.BuildGuis(this);
-        contentLoader.loadBuildingTextures(this);
-        contentLoader.loadBuildingGuiTextures(this);
-        contentLoader.loadAndMapGuiAnimationFrames(this);
-        contentLoader.loadItemTextures(this);
-
-        //ready playing field (temporary until main menu)
-        buildingCore.populate();
-
         packageLoader.loadPackages();
-
         for(Map.Entry<String, PackageCore> entry : packageCores.entrySet()){
             entry.getValue().initialize();
 

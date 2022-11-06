@@ -18,8 +18,9 @@ public class GuiBuilder {
     public final StaticGuiElement[] staticGuiComponents;
     public final DynamicGuiElement[] activeGuiComponents;
     public final InteractiveGuiElement[] interactiveGuiComponents;
+    private String guiId;
 
-    public GuiBuilder(int width, int height, Color backgroundColor, Font numberFont, StaticGuiElement[] staticGuiComponents, DynamicGuiElement[] activeGuiComponents, InteractiveGuiElement[] interactiveGuiComponents) {
+    public GuiBuilder(int width, int height, Color backgroundColor, Font numberFont, StaticGuiElement[] staticGuiComponents, DynamicGuiElement[] activeGuiComponents, InteractiveGuiElement[] interactiveGuiComponents, String guiId) {
         this.width = width;
         this.height = height;
         this.backgroundColor = backgroundColor;
@@ -27,6 +28,7 @@ public class GuiBuilder {
         this.staticGuiComponents = staticGuiComponents;
         this.activeGuiComponents = activeGuiComponents;
         this.interactiveGuiComponents = interactiveGuiComponents;
+        this.guiId = guiId;
     }
 
     public Gui build() {
@@ -49,6 +51,10 @@ public class GuiBuilder {
                 element.compile();
             }
         }
-        return new Gui(gui, activeGuiComponents, interactiveGuiComponents);
+        return new Gui(gui, activeGuiComponents, interactiveGuiComponents, guiId);
+    }
+
+    public void setGuiId(String guiId) {
+        this.guiId = guiId;
     }
 }

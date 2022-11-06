@@ -15,8 +15,7 @@ public class GameGui {
     private final Font numberFont = new Font("Century", Font.PLAIN, 20);
     private final HashMap<Items, BufferedImage> itemTextures = new HashMap<>();
     private final HashMap<Buildings, HashMap<Integer, BufferedImage>> mappedAnimationFrames = new HashMap<>();
-    private final HashMap<GuiTypes, GuiBuilder> guiBuilders = new HashMap<>();
-    private final HashMap<GuiTypes, Gui> guis = new HashMap<>();
+    private final HashMap<String, Gui> guis = new HashMap<>();
 
     public void RenderBuildingInventoryGui(Graphics g, Vec2i buildingPos, Building building){
         int pixelPosX = buildingPos.x * 10;
@@ -29,13 +28,6 @@ public class GameGui {
 
     public Font getNumberedFont(){
         return numberFont;
-    }
-
-    public HashMap<GuiTypes, GuiBuilder> getGuiBuilders() {
-        return guiBuilders;
-    }
-    public void addGuiBuilder(GuiTypes type, GuiBuilder builder){
-        guiBuilders.put(type, builder);
     }
 
     private void drawBuildingGuiTextureFrom(int startX, int startY, Building b, Graphics g) {
@@ -58,10 +50,6 @@ public class GameGui {
         mappedAnimationFrames.put(b, mapAnimationFrames);
     }
 
-    public void addGui(GuiTypes type, Gui gui) {
-        guis.put(type, gui);
-    }
-
     public void sendMouseEventAll(MouseEvent event){
         for(Gui gui : guis.values()){
             gui.sendMouseEvent(event);
@@ -80,5 +68,9 @@ public class GameGui {
         for(Gui gui : guis.values()){
             gui.sendMouseMoveEvent(event);
         }
+    }
+
+    public void registerGui(Gui build) {
+        guis.put(build.guiId, build);
     }
 }

@@ -1,17 +1,21 @@
 package GameContent;
 
+import GameBuildings.Building;
+import GameBuildings.BuildingConfig;
+import GameCore.GuiBuilder;
 import GameCore.Main;
-import GameUtils.GameUtils;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.util.ArrayList;
 
 public class GamePackageLoader {
 
+    GameConfigLoader configLoader = new GameConfigLoader();
+    GameContentLoader contentLoader = new GameContentLoader();
+    GameContentValidation contentValidation = new GameContentValidation();
 
     public void loadPackages(){
-        File[] packageFolders = new File(Main.gamePath + "Packages\\").listFiles(File::isDirectory);
+        File[] packageFolders = new File(Main.getGamePath() + "Packages\\").listFiles(File::isDirectory);
 
         if(packageFolders == null){
             return;
@@ -23,76 +27,46 @@ public class GamePackageLoader {
     }
 
     private void loadPackage(File currentPackageFolder) {
-        GamePackage packageConfig = loadPackageConfig(currentPackageFolder);
-        Class<? extends PackageCore> packageCoreClass = loadPackageCoreClass(currentPackageFolder);
-
+        GamePackage packageConfig = configLoader.loadPackageConfig(currentPackageFolder);
         if(packageConfig == null){
             Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Core Loading And Initializing of package %s failed do to package Config not loading correctly!", currentPackageFolder.getName())));
-        }
-        if(packageCoreClass == null){
-            Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Core Loading And Initializing of package %s failed do to package core class error!", currentPackageFolder.getName())));
             return;
         }
 
-        Main.getClient().registerPackage(currentPackageFolder.getName(), packageConfig, packageCoreClass);
-
-        loadPackageGuis(packageConfig);
-    }
-
-    private void loadPackageGuis(GamePackage packageConfig) {
-        File guiConfig = new File(Main.gamePath + "\\" + packageConfig.guiGfg);
-    }
-
-    @SuppressWarnings("unchecked")
-    private Class<? extends PackageCore> loadPackageCoreClass(File currentPackageFolder) {
-        File packageCoreClass = new File(currentPackageFolder.getAbsolutePath() + "\\" + currentPackageFolder.getName() + ".class");
-
-        if(packageCoreClass.exists()){
-            Class<?> cls = GameCompiler.loadClass(packageCoreClass, currentPackageFolder.getAbsolutePath(), "Packages." + currentPackageFolder.getName() + "." + currentPackageFolder.getName());
-            if(cls == null){
-                Main.getClient().setErrorGameStateException(new NullPointerException(String.format("While loading the package %s the result of loading the core class was null!", currentPackageFolder.getName())));
-                return null;
-            }
-            if(PackageCore.class.isAssignableFrom(cls)){
-                return (Class<? extends PackageCore>) cls;
-            }else{
-                Main.getClient().setErrorGameStateException(new ClassCastException(String.format("The loading of the core class for package %s resulted in a class that does not implement the %s interface", currentPackageFolder.getName(), PackageCore.class.getCanonicalName())));
-                return null;
-            }
-        }else{
-            File packageCoreSource = new File(currentPackageFolder.getAbsolutePath() + "\\" + currentPackageFolder.getName() + ".java");
-            if(!packageCoreSource.exists()){
-                Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("Trying to find core class file ore core class source code for package %s failed!", currentPackageFolder.getName())));
-                return null;
-            }
-
-            Class<?> cls = GameCompiler.compileFile(packageCoreSource, currentPackageFolder.getAbsolutePath(), currentPackageFolder.getName());
-            if(cls == null){
-                Main.getClient().setErrorGameStateException(new NullPointerException(String.format("loading the package core class of package %s result in null!", currentPackageFolder.getName())));
-                return null;
-            }
-            if(!cls.isAssignableFrom(PackageCore.class)){
-                Main.getClient().setErrorGameStateException(new ClassCastException(String.format("The source class of the package %s does not implement %s, Source File: %s", currentPackageFolder.getName(), PackageCore.class.getCanonicalName(), packageCoreSource.getAbsolutePath())));
-                return null;
-            }
-
-            return (Class<? extends PackageCore>) cls;
+        Class<? extends PackageCore> packageCoreClass = contentLoader.loadPackageCoreClass(currentPackageFolder);
+        if(packageCoreClass == null){
+            Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Core Loading And Initializing of package %s (%s) failed do to package core class error!", packageConfig.packageDisplayName, packageConfig.getPackageId())));
+            return;
         }
-    }
+        Main.getClient().registerPackage(packageConfig.getPackageId(), packageConfig, packageCoreClass);
 
-    private GamePackage loadPackageConfig(File currentPackageFolder) {
-        File packageConfig = new File(currentPackageFolder.getAbsolutePath() + "\\" + currentPackageFolder.getName() + ".json");
-
-        if(!packageConfig.exists()){
-            Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("The package config file was not found for package %s, the file was expected at %s", currentPackageFolder.getName(), packageConfig.getAbsolutePath())));
+        ArrayList<GuiBuilder> guiBuilders = configLoader.loadGuiConfig(packageConfig);
+        if(guiBuilders == null){
+            Main.getClient().setErrorGameStateException(new NullPointerException(String.format("The result of loading the guis for package %s (%s) resulted in null!", packageConfig.packageDisplayName, packageConfig.getPackageId())));
+            return;
+        }
+        for (GuiBuilder builder : guiBuilders){
+            Main.getClient().clientGraphics().gui().registerGui(builder.build());
         }
 
-        try {
-            return Main.getGsonMaster().fromJson(GameUtils.readFile(packageConfig.getAbsolutePath()), GamePackage.class);
-        }catch(IOException e){
-            Main.getClient().setErrorGameStateException(e);
+        ArrayList<BuildingConfig> buildingConfigs = configLoader.loadBuildingConfig(packageConfig);
+        if(buildingConfigs == null){
+            Main.getClient().setErrorGameStateException(new NullPointerException(String.format("The result of loading building configs for package %s (%s) resulted in null!", packageConfig.packageDisplayName, packageConfig.getPackageId())));
+            return;
         }
-        return null;
+        for (BuildingConfig config : buildingConfigs) {
+            Main.getClient().buildingCore().registerBuildingConfig(config);
+            Class<? extends Building> bClass = contentLoader.loadBuildingClass(config, packageConfig);
+            if(bClass == null){
+                Main.getClient().setErrorGameStateException(new NullPointerException(String.format("The result of loading the building class for building %s in the package %s (%s) resulted in null", config.getBuildingId(), packageConfig.packageDisplayName, packageConfig.getPackageId())));
+                return;
+            }
+            Main.getClient().buildingCore().registerBuildingClass(config.getBuildingId(), contentLoader.loadBuildingClass(config, packageConfig));
+            Main.getClient().clientGraphics().registerBuildingTexture(config.getBuildingId(), contentLoader.loadBuildingTexture(config, packageConfig));
+
+            //TODO: Error on loading package config locations for other configs == null
+            //TODO: Building Custom content revisit later not implemented for now
+        }
     }
 
 }

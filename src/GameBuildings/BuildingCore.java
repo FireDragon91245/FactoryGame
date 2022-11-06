@@ -14,11 +14,12 @@ public class BuildingCore {
 
     private final OreGeneration oreGenerator = new OreGeneration();
     private final HashMap<Integer, HashMap<Integer, Building>> buildings = new HashMap<>();
-    private final HashMap<Buildings, BuildingConfig> bConfig = new HashMap<>();
+    private final HashMap<String, BuildingConfig> bConfig = new HashMap<>();
+    private final HashMap<String, Class<? extends Building>> bClass = new HashMap<>();
     private final HashMap<Ores, OreConfig> oConfig = new HashMap<>();
 
     public void setBuildingConfig(Buildings type, BuildingConfig config) {
-        bConfig.put(type, config);
+        bConfig.put(type.toString(), config);
     }
 
     public BuildingConfig getBuildingConfig(Buildings type) {
@@ -460,5 +461,13 @@ public class BuildingCore {
                 }
             }
         }
+    }
+
+    public void registerBuildingConfig(BuildingConfig config) {
+        bConfig.put(config.getBuildingId(), config);
+    }
+
+    public void registerBuildingClass(String buildingId, Class<? extends Building> buildingClass) {
+        bClass.put(buildingId, buildingClass);
     }
 }

@@ -1,81 +1,65 @@
 package GameContent;
 
-import GameBuildings.*;
+import GameBuildings.BuildingConfig;
+import GameBuildings.OreConfig;
+import GameBuildings.Ores;
 import GameConverter.GuiBuilderDeserializer;
-import GameCore.*;
+import GameCore.GuiBuilder;
+import GameCore.Main;
 import GameItems.ItemConfig;
 import GameItems.ItemMain;
 import GameItems.Items;
 import GameUtils.GameUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Map;
 
 public class GameConfigLoader {
 
 
-    public void loadBuildingConfig(String path) {
-        String jsonString = readFile(path);
-        if (jsonString == null) {
-            Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Result of reading file %s returned null", path)));
-            return;
-        }
-
-        JsonObject jsonObject = new Gson().fromJson(jsonString, JsonObject.class);
-        for (Buildings bId : Buildings.values()) {
-            JsonObject childObject = jsonObject.getAsJsonObject(bId.toString());
-            Gson gson = new Gson();
-            BuildingConfig config = gson.fromJson(childObject, BuildingConfig.class);
-            if (config == null) {
-                Main.getClient().setErrorGameStateException(new NullPointerException(String.format("The building Config loading result of the building: %s is null!", bId)));
-                return;
-            }
-
-            Main.getClient().buildingCore().setBuildingConfig(bId, config);
-        }
-    }
-
-    public static String readFile(String path) {
-        String fullFilePath = path;
-        for (String p : Main.getRootFolders()) {
-            if (new File(p + path).exists()) {
-                fullFilePath = p + path;
-                break;
-            }
-        }
-        if (fullFilePath.equalsIgnoreCase(path)) {
-            Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("Config file was not found on any root path, root paths: %s", GameUtils.listToString(Main.getRootFolders()))));
-        }
-        String jsonString = null;
-        BufferedReader reader;
-        try {
-            reader = new BufferedReader(new FileReader(fullFilePath));
-        } catch (FileNotFoundException e) {
-            Main.getClient().setErrorGameStateException(e);
+    public ArrayList<BuildingConfig> loadBuildingConfig(GamePackage packageConfig) {
+        File configFile = new File(Main.getGamePath() + "\\" + packageConfig.buildingCfg);
+        if(!configFile.exists()){
+            Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("Trying to load building config for package %s (%s) resulted in null", packageConfig.packageDisplayName, packageConfig.getPackageId())));
             return null;
         }
 
+        String jsonString = null;
         try {
-            StringBuilder builder = new StringBuilder();
-            String line = reader.readLine();
+            jsonString = GameUtils.readFile(configFile.getAbsolutePath());
+        } catch (IOException ignored) {}
 
-            while (line != null) {
-                builder.append(line);
-                builder.append(System.lineSeparator());
-                line = reader.readLine();
+        if (jsonString == null) {
+            Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Result of reading building config for package %s (%s) file %s returned null", packageConfig.packageDisplayName, packageConfig.getPackageId(), configFile.getAbsolutePath())));
+            return null;
+        }
+
+        JsonObject jsonObject = new Gson().fromJson(jsonString, JsonObject.class);
+        ArrayList<BuildingConfig> ret = new ArrayList<>();
+        for (Map.Entry<String, JsonElement> jsonEntry : jsonObject.entrySet()) {
+            BuildingConfig config = Main.getGsonMaster().fromJson(jsonEntry.getValue(), BuildingConfig.class);
+            if (config == null) {
+                Main.getClient().setErrorGameStateException(new NullPointerException(String.format("The building Config loading result of the building: %s is null! Package %s (%s)", jsonEntry.getKey(), packageConfig.packageDisplayName, packageConfig.getPackageId())));
+                return null;
             }
 
-            jsonString = builder.toString();
-        } catch (IOException e) {
-            Main.getClient().setErrorGameStateException(e);
+            config.setBuildingId(jsonEntry.getKey());
+            ret.add(config);
         }
-        return jsonString;
+        return ret;
     }
 
     public void loadOreConfig(String path) {
-        String jsonString = readFile(path);
+        String jsonString = null;
+        try {
+            jsonString = GameUtils.readFile(path);
+        } catch (IOException ignored) {}
+
         if (jsonString == null) {
             Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Result of reading file %s returned null", path)));
             return;
@@ -96,7 +80,11 @@ public class GameConfigLoader {
     }
 
     public void loadItemConfig(String path) {
-        String jsonString = readFile(path);
+        String jsonString = null;
+        try {
+            jsonString = GameUtils.readFile(path);
+        } catch (IOException ignored) {}
+
         if (jsonString == null) {
             Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Result of reading file %s returned null", path)));
             return;
@@ -118,24 +106,54 @@ public class GameConfigLoader {
         }
     }
 
-    public void loadGuiConfig(String path) {
-        String jsonString = readFile(path);
+    public ArrayList<GuiBuilder> loadGuiConfig(GamePackage packageConfig) {
+        File guiConfig = new File(Main.getGamePath() + "\\" + packageConfig.guiGfg);
+        if(!guiConfig.exists()){
+            Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("The gui config for the package %s (%s) was not found at the location %s!", packageConfig.packageDisplayName, packageConfig.getPackageId(), guiConfig.getPath())));
+            return null;
+        }
+
+        String jsonString = null;
+        try {
+            jsonString = GameUtils.readFile(guiConfig.getAbsolutePath());
+        } catch (IOException e) {
+            Main.getClient().setErrorGameStateException(e);
+        }
         if (jsonString == null) {
-            Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Result of reading file %s returned null", path)));
-            return;
+            Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Result of reading file %s returned null", guiConfig.getAbsolutePath())));
+            return null;
         }
 
         Gson gson = new GsonBuilder().registerTypeAdapter(GuiBuilder.class, new GuiBuilderDeserializer()).create();
         JsonObject jsonObject = Main.getGsonMaster().fromJson(jsonString, JsonObject.class);
-        for (GuiTypes type : GuiTypes.values()) {
-            JsonObject childObject = jsonObject.getAsJsonObject(type.toString());
-            GuiBuilder builder = gson.fromJson(childObject, GuiBuilder.class);
+        ArrayList<GuiBuilder> ret = new ArrayList<>();
+        for (Map.Entry<String, JsonElement> jsonEntry : jsonObject.entrySet()) {
+            GuiBuilder builder = gson.fromJson(jsonEntry.getValue(), GuiBuilder.class);
             if (builder == null) {
-                Main.getClient().setErrorGameStateException(new NullPointerException(String.format("The result of trying to load %s resulted in a null value", type)));
-                return;
+                Main.getClient().setErrorGameStateException(new NullPointerException(String.format("The result of trying to load gui %s resulted in a null value", jsonEntry.getKey())));
+                return null;
             }
 
-            Main.getClient().clientGraphics().gui().addGuiBuilder(type, builder);
+            builder.setGuiId(jsonEntry.getKey());
+            ret.add(builder);
         }
+        return ret;
+    }
+
+    public GamePackage loadPackageConfig(File currentPackageFolder) {
+        File packageConfig = new File(currentPackageFolder.getAbsolutePath() + "\\" + currentPackageFolder.getName() + ".json");
+
+        if(!packageConfig.exists()){
+            Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("The package config file was not found for package %s, the file was expected at %s", currentPackageFolder.getName(), packageConfig.getAbsolutePath())));
+        }
+
+        GamePackage pack = null;
+        try {
+            pack = Main.getGsonMaster().fromJson(GameUtils.readFile(packageConfig.getAbsolutePath()), GamePackage.class);
+            pack.setPackageId(packageConfig.getName().replaceFirst("[.][^.]+$", ""));
+        } catch (IOException e) {
+            Main.getClient().setErrorGameStateException(new NullPointerException(String.format("While loading the package config from %s a error occurred", currentPackageFolder.getAbsolutePath())));
+        }
+        return pack;
     }
 }

@@ -25,7 +25,7 @@ public class Main {
     private static final Gson masterGson = createMasterGson();
     private static final GameContentExtractor contentExtractor = new GameContentExtractor();
     private static ArrayList<String> rootFolders = new ArrayList<>();
-    public static final String gamePath = getGamePath();
+    private static final String gamePath = findGamePath();
 
 
     public static void main(String[] args) {
@@ -48,8 +48,11 @@ public class Main {
         prepareGameContent();
         game.StartGameLoop();
 
-        //Todo: Make Client class that wraps the GameCore class and dont make everything static make game core have its own instances
-        //Todo: Replace the Gui . GetMainObserver with Main.game
+        //Todo: Replace the Gui . GetMainObserver with Main.game -> investigate if necesary
+    }
+
+    public static String getGamePath(){
+        return gamePath;
     }
 
     private static void readArgs(String[] args) {
@@ -88,7 +91,7 @@ public class Main {
         return rootFolders;
     }
 
-    private static String getGamePath() {
+    private static String findGamePath() {
         String path = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
         if(path.endsWith(".jar")){
             return new File(path).getParentFile().getAbsolutePath();

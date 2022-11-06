@@ -1,1 +1,0 @@
-package RuntimeContent; import GameCore.GuiElements.Intractable; import GameBuildings.BuildingCore; import GameBuildings.BuildingMine; import GameCore.Main; public class TestButton implements Intractable { public void interact(){ for(int i = 0; i < 100; i++){ Main.getClient().buildingCore().addBuilding(i , i, new BuildingMine(i, i)); } } }

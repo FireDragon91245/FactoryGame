@@ -13,13 +13,13 @@ import java.util.HashMap;
 
 public class GameGraphics {
     private final JLayeredPane mainPane = new JLayeredPane();
-    private final HashMap<Buildings, BufferedImage> buildingTextures = new HashMap<>();
+    private final HashMap<String, BufferedImage> buildingTextures = new HashMap<>();
     private final HashMap<Buildings, BufferedImage> buildingGuiTextures = new HashMap<>();
 
     private final GameGui gameGui = new GameGui();
 
     public void RegisterBuildingImage(Buildings bId, BufferedImage img){
-        buildingTextures.put(bId, img);
+        buildingTextures.put(bId.toString(), img);
     }
 
     public void printErrorScreen(@NotNull Graphics g){
@@ -27,15 +27,13 @@ public class GameGraphics {
         g.setColor(Color.RED);
         g.setFont(new Font("TimesRoman", Font.BOLD, 20));
         int i = 0;
-        for(String s : GameUtils.ChopValue( Main.getClient().getErrorGameStateException().toString(), 40)){
+        for(Exception e : Main.getClient().getErrorGameStateExceptions()) {
+            for (String s : GameUtils.ChopValue(e.toString(), 75)) {
+                i++;
+                g.drawString(s, Main.getClient().windowWidth() / 2 - (g.getFontMetrics().stringWidth(s) / 2), 200 + 20 * i);
+            }
             i++;
-            g.drawString(s, Main.getClient().windowWidth() / 2 - (g.getFontMetrics().stringWidth(s) / 2), 200 + 20 * i);
         }
-    }
-
-    public void SetBackground(@NotNull Graphics2D g2, Color col){
-        g2.setColor(col);
-        g2.fillRect(0, 0, Main.getClient().windowWidth(), Main.getClient().windowHeight());
     }
 
     public void SetBackground(@NotNull Graphics g, Color col){
@@ -82,6 +80,10 @@ public class GameGraphics {
 
     public BufferedImage getBuildingGuiImage(Buildings b) {
         return buildingGuiTextures.get(b);
+    }
+
+    public void registerBuildingTexture(String buildingId, BufferedImage bTexture) {
+        buildingTextures.put(buildingId, bTexture);
     }
 }
 

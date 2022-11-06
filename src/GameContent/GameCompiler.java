@@ -1,6 +1,7 @@
 package GameContent;
 
 import GameCore.Main;
+import GameUtils.GameUtils;
 
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
@@ -18,7 +19,11 @@ public class GameCompiler {
             if (!new File(path + "RuntimeContent\\" + className + ".class").exists()) {
                 return true;
             }
-            String compiledCode = GameConfigLoader.readFile("\\RuntimeContent\\" + className + ".java");
+            String compiledCode = null;
+            try {
+                compiledCode = GameUtils.readFile(Main.getGamePath() + "\\RuntimeContent\\" + className + ".java");
+            } catch (IOException ignored) {}
+
             if(compiledCode == null){
                 return true;
             }
@@ -46,13 +51,13 @@ public class GameCompiler {
         return loadClass(fiResult, path, "RuntimeContent." + className);
     }
 
-    public static Class<?> loadClass(File fiResult, String path, String className) {
-        try (URLClassLoader loader = URLClassLoader.newInstance(new URL[]{new File(path).toURI().toURL()})) {
+    public static Class<?> loadClass(File classFile, String rootPath, String className) {
+        try (URLClassLoader loader = URLClassLoader.newInstance(new URL[]{new File(rootPath).toURI().toURL()})) {
             return Class.forName(className, true, loader);
         } catch (IOException | ClassNotFoundException e) {
             Main.getClient().setErrorGameStateException(e);
         }
-        Main.getClient().setErrorGameStateException(new ClassNotFoundException("Couldn't find the class: " + className + " int the expected locations! Expected Location: " + fiResult.getAbsolutePath()));
+        Main.getClient().setErrorGameStateException(new ClassNotFoundException("Couldn't find the class: " + className + " int the expected locations! Expected Location: " + classFile.getAbsolutePath()));
         return null;
     }
 

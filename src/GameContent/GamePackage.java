@@ -13,6 +13,8 @@ public class GamePackage {
     public final String[] packageDescription;
     public final GamePackageDependency[] dependencies;
 
+    private String packageId;
+
     public GamePackage(String buildingCfg, String guiGfg, String oreCfg, String itemCfg, boolean frameUpdates, boolean tickUpdates, float packageVersion, String packageDisplayName, String[] packageDescription, GamePackageDependency[] dependencies) {
         this.buildingCfg = buildingCfg;
         this.guiGfg = guiGfg;
@@ -24,5 +26,13 @@ public class GamePackage {
         this.packageDisplayName = packageDisplayName;
         this.packageDescription = packageDescription;
         this.dependencies = dependencies;
+    }
+
+    public String getPackageId() {
+        return packageId;
+    }
+
+    public void setPackageId(String packageId) {
+        this.packageId = packageId;
     }
 }

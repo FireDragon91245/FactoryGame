@@ -16,11 +16,13 @@ public class Gui {
 
     public final DynamicGuiElement[] activeRenderers;
     public final InteractiveGuiElement[] interactiveGuiElements;
+    public final String guiId;
 
-    public Gui(BufferedImage image, DynamicGuiElement[] activeRenderers, InteractiveGuiElement[] interactiveGuiElements) {
+    public Gui(BufferedImage image, DynamicGuiElement[] activeRenderers, InteractiveGuiElement[] interactiveGuiElements, String guiId) {
         this.image = image;
         this.activeRenderers = activeRenderers;
         this.interactiveGuiElements = interactiveGuiElements;
+        this.guiId = guiId;
     }
 
     public void render(int startX, int startY, Graphics g, Building b) {
