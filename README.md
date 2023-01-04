@@ -9,6 +9,8 @@
 
   - Anotations Libary by JetBrains
 
+# Look WIKI for new Informations
+
 # Modding (Only Parcial Implementet NVM Everything changed again)
   **Explaination: I dont wanted to have mods be seperatly loaded from the core game content, i dont wantet the core game content to be hard coded,**
   **so i not only startet working on the modding system but also i startet to convert the core content to a mod,**
