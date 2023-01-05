@@ -1,5 +1,6 @@
-package GameBuildings;
+package Packages.Vanilla.Buildings;
 
+import GameBuildings.Building;
 import GameCore.Main;
 import GameItems.Inventory;
 import GameUtils.Vec2i;
@@ -7,16 +8,16 @@ import GameUtils.Vec2i;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class BuildingMine implements Building {
+public class Mine implements Building {
 
     private final int x;
     private final int y;
+    private Inventory inv = new Inventory(getType());
 
     private int currentWorkingProgress = 0;
-    private Inventory inv = new Inventory(getType());
     private boolean inventoryTarget = false;
 
-    public BuildingMine(int x, int y) {
+    public Mine(int x, int y) {
         this.x = x;
         this.y = y;
     }
@@ -34,7 +35,7 @@ public class BuildingMine implements Building {
     @Override
     public void work(int x, int y) {
         currentWorkingProgress++;
-        if(currentWorkingProgress >= Main.getClient().buildingCore().getBuildingConfig(getType()).workConfig.workInterval){
+        if(currentWorkingProgress >= Main.getClient().buildingCore().getBuildingConfig(getType()).getWorkConfig().workInterval){
             Building b = Main.getClient().buildingCore().getBuilding(x, y);
             if(b != null && inventoryTarget){
                 Main.getClient().buildingCore().handleDirectImportsToOutputForWorkControlled(new Vec2i(x, y), b);
@@ -43,10 +44,9 @@ public class BuildingMine implements Building {
         }
     }
 
-
     @Override
-    public Buildings getType() {
-        return Buildings.Mine;
+    public String getType() {
+        return "Vanilla:Mine";
     }
 
     @Override
@@ -65,11 +65,11 @@ public class BuildingMine implements Building {
     }
 
     @Override
-    public void neighborAdded(Buildings type) {
+    public void neighborAdded(String type) {
         if(inventoryTarget){
             return;
         }
-        if(Arrays.stream(Main.getClient().buildingCore().getBuildingConfig(getType()).inventoryConfig.thisImportsFrom).anyMatch(x -> x == type)){
+        if(Arrays.asList(Main.getClient().buildingCore().getBuildingConfig(getType()).getInventoryConfig().thisImportsFrom).contains(type)){
             inventoryTarget = true;
         }
     }
@@ -80,9 +80,9 @@ public class BuildingMine implements Building {
     }
 
     @Override
-    public void updateSelfInventoryTargetAfterPlace(ArrayList<Buildings> neighborTypes) {
-        for(Buildings building : neighborTypes){
-            if(Arrays.stream(Main.getClient().buildingCore().getBuildingConfig(getType()).inventoryConfig.thisImportsFrom).anyMatch(x -> x == building)){
+    public void updateSelfInventoryTargetAfterPlace(ArrayList<String> neighborTypes) {
+        for(String building : neighborTypes){
+            if(Arrays.asList(Main.getClient().buildingCore().getBuildingConfig(getType()).getInventoryConfig().thisImportsFrom).contains(building)){
                 inventoryTarget = true;
             }
         }

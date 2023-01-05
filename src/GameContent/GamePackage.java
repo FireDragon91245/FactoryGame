@@ -3,7 +3,7 @@ package GameContent;
 public class GamePackage {
 
     public final String buildingCfg;
-    public final String guiGfg;
+    public final String guiCfg;
     public final String oreCfg;
     public final String ItemCfg;
     public final boolean frameUpdates;
@@ -17,7 +17,7 @@ public class GamePackage {
 
     public GamePackage(String buildingCfg, String guiGfg, String oreCfg, String itemCfg, boolean frameUpdates, boolean tickUpdates, float packageVersion, String packageDisplayName, String[] packageDescription, GamePackageDependency[] dependencies) {
         this.buildingCfg = buildingCfg;
-        this.guiGfg = guiGfg;
+        this.guiCfg = guiGfg;
         this.oreCfg = oreCfg;
         ItemCfg = itemCfg;
         this.frameUpdates = frameUpdates;

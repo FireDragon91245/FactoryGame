@@ -1,6 +1,5 @@
 package GameItems;
 
-import GameBuildings.Buildings;
 import GameCore.Main;
 
 import java.util.ArrayList;
@@ -9,7 +8,7 @@ public class Inventory {
 
     private static final ItemStack blocked = new ItemStack(Items.Blocked, 0);
 
-    private final Buildings bType;
+    private final String bId;
     private final ArrayList<ItemStack> inputItems = new ArrayList<>();
     private final ArrayList<ItemStack> outputItems = new ArrayList<>();
 
@@ -29,8 +28,8 @@ public class Inventory {
         return outputItems;
     }
 
-    public Buildings getBuildingType(){
-        return bType;
+    public String getBuildingId(){
+        return bId;
     }
 
     public void setInputSlot(int slot, ItemStack stack) {
@@ -49,14 +48,14 @@ public class Inventory {
         outputItems.set(slot, stack);
     }
 
-    public Inventory(Buildings bType) {
-        this.bType = bType;
+    public Inventory(String bId) {
+        this.bId = bId;
         init();
     }
 
     private void init() {
-        int slotsIn = Main.getClient().buildingCore().getBuildingConfig(bType).inputSlots;
-        int slotsOut = Main.getClient().buildingCore().getBuildingConfig(bType).outputSlots;
+        int slotsIn = Main.getClient().buildingCore().getBuildingConfig(bId).getInputSlots();
+        int slotsOut = Main.getClient().buildingCore().getBuildingConfig(bId).getOutputSlots();
         for(int i = 0; i < slotsIn; i++){
             inputItems.add(i, new ItemStack(Items.None, 0));
         }

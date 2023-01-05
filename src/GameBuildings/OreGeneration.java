@@ -31,19 +31,19 @@ public class OreGeneration {
                 }
                 building.overwriteInventory(generateInventory(ores[i][j].oreType, ores[i][j].type, ores[i][j].dist));
                 if(!building.getInventory().isOutputEmpty()) {
-                    generateTo.addBuilding(i, j, building);
+                    generateTo.addBuilding(building);
                 }
             }
         }
     }
 
     private Inventory generateInventory(Ores ore, Buildings building, double dist) {
-        Inventory inv = new Inventory(building);
+        Inventory inv = new Inventory(building.toString());
         if(Main.getClient().buildingCore().getOreConfig(ore).getGeneratesItem() == Items.None){
             return inv;
         }
         Random rand = new Random();
-        for(int i = 0; i < Main.getClient().buildingCore().getBuildingConfig(building).outputSlots; i++) {
+        for(int i = 0; i < Main.getClient().buildingCore().getBuildingConfig(building).getOutputSlots(); i++) {
             int amount = RandomNumber(rand, Main.getClient().buildingCore().getOreConfig(ore).getItemMinBaseAmount(), Main.getClient().buildingCore().getOreConfig(ore).getItemMaxBaseAmount()) - ((int) dist * Main.getClient().buildingCore().getOreConfig(ore).getItemDistanceFalloff());
             if(amount <= 0) {
                 inv.setOutputSlot(i, new ItemStack(Items.None, 0));

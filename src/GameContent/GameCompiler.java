@@ -57,8 +57,16 @@ public class GameCompiler {
         } catch (IOException | ClassNotFoundException e) {
             Main.getClient().setErrorGameStateException(e);
         }
-        Main.getClient().setErrorGameStateException(new ClassNotFoundException("Couldn't find the class: " + className + " int the expected locations! Expected Location: " + classFile.getAbsolutePath()));
+        Main.getClient().setErrorGameStateException(new ClassNotFoundException("Couldn't find the class: " + className + " int the expected locations! Expected Location: " + classFile.getPath()));
         return null;
+    }
+
+    public static Class<?> loadClass(File classFile, String className){
+        if(!classFile.exists()){
+            Main.getClient().setErrorGameStateException(new ClassNotFoundException("Couldn't find the class: " + className + " int the expected locations! Expected Location: " + classFile.getPath()));
+            return null;
+        }
+        return loadClass(classFile, classFile.getParentFile().getAbsolutePath(), className);
     }
 
     private static File getCompiledFile(String className, String path) {
@@ -98,8 +106,9 @@ public class GameCompiler {
     }
 
     public static Class<?> compileFile(File sourceFile, String rootFolder, String className) {
-        if(sourceFile.exists()){
-            Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("The file to compile at %s does not exist!", sourceFile.getPath())));
+        if(!sourceFile.exists()){
+            Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("The file to compile at %s does not exist! Class import: %s", sourceFile.getPath(), className)));
+            return null;
         }
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         int res = compiler.run(null, null, null, sourceFile.getAbsolutePath());
@@ -114,5 +123,13 @@ public class GameCompiler {
         }
 
         return loadClass(result, rootFolder,"RuntimeContent." + className + "." + className);
+    }
+
+    public static Class<?> compileFile(File sourceFile, String className){
+        if(!sourceFile.exists()){
+            Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("The file to compile at %s does not exist! Class import: %s", sourceFile.getPath(), className)));
+            return null;
+        }
+        return compileFile(sourceFile, sourceFile.getParentFile().getAbsolutePath(), className);
     }
 }

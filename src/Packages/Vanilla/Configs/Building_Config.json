@@ -1,5 +1,6 @@
 {
-  "Mine": {
+  "Vanilla:Mine": {
+    "buildingClass": "Packages\\Vanilla\\Buildings\\Mine",
     "updateDirection": "None",
     "guiType": "BuildingGuiInputOutputNonAnimated",
     "inputSlots": 0,
@@ -45,6 +46,7 @@
     }
   },
   "CoalOre": {
+    "buildingClass": "Packages\\Vanilla\\Buildings\\CoalOre",
     "updateDirection": "None",
     "guiType": "BuildingGuiInputOutputNonAnimated",
     "inputSlots": 0,
@@ -75,6 +77,7 @@
     "workConfig": null
   },
   "IronOre": {
+    "buildingClass": "Packages\\Vanilla\\Buildings\\IronOre",
     "updateDirection": "None",
     "guiType": "BuildingGuiInputOutputNonAnimated",
     "inputSlots": 0,
@@ -109,6 +112,7 @@
     "workConfig": null
   },
   "BeltLeftRight": {
+    "buildingClass": "Packages\\Vanilla\\Buildings\\BeltLeftRight",
     "updateDirection": "RightLeftBottomTop",
     "guiType": "BuildingGuiInputOutputNonAnimated",
     "inputSlots": 0,
@@ -120,11 +124,11 @@
     "overwriteGuiImage": false,
     "inventoryConfig": {
       "thisImportsFrom": [
-        "Mine",
-        "BeltLeftRight"
+        "Vanilla:Mine",
+        "Vanilla:BeltLeftRight"
       ],
       "thisExportsTo": [
-        "Mine"
+        "Vanilla:Mine"
       ],
       "importSpeed": 1,
       "exportSpeed": 1,

@@ -1,11 +1,12 @@
-package GameBuildings;
+package Packages.Vanilla.Buildings;
 
+import GameBuildings.Building;
 import GameCore.Main;
 import GameItems.Inventory;
 
 import java.util.ArrayList;
 
-public class BuildingCoalOre implements Building{
+public class CoalOre implements Building {
 
 
     private final int x;
@@ -14,7 +15,7 @@ public class BuildingCoalOre implements Building{
     private Inventory inv = new Inventory(getType());
     private boolean inventoryTarget = false;
 
-    public BuildingCoalOre(int x, int y) {
+    public CoalOre(int x, int y) {
         this.x = x;
         this.y = y;
     }
@@ -34,8 +35,8 @@ public class BuildingCoalOre implements Building{
     }
 
     @Override
-    public Buildings getType() {
-        return Buildings.CoalOre;
+    public String getType() {
+        return "Vanilla:CoalOre";
     }
 
     @Override
@@ -55,7 +56,7 @@ public class BuildingCoalOre implements Building{
     }
 
     @Override
-    public void neighborAdded(Buildings type) {
+    public void neighborAdded(String type) {
         inventoryTarget = false;
     }
 
@@ -65,7 +66,7 @@ public class BuildingCoalOre implements Building{
     }
 
     @Override
-    public void updateSelfInventoryTargetAfterPlace(ArrayList<Buildings> neighborTypes) {
+    public void updateSelfInventoryTargetAfterPlace(ArrayList<String> neighborTypes) {
         inventoryTarget = false;
     }
 }

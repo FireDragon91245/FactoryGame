@@ -25,7 +25,7 @@ public class GameConfigLoader {
     public ArrayList<BuildingConfig> loadBuildingConfig(GamePackage packageConfig) {
         File configFile = new File(Main.getGamePath() + "\\" + packageConfig.buildingCfg);
         if(!configFile.exists()){
-            Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("Trying to load building config for package %s (%s) resulted in null", packageConfig.packageDisplayName, packageConfig.getPackageId())));
+            Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("Did not find the Building config for package %s (%s) at the expected location: %s", packageConfig.packageDisplayName, packageConfig.getPackageId(), configFile.getPath())));
             return null;
         }
 
@@ -107,7 +107,8 @@ public class GameConfigLoader {
     }
 
     public ArrayList<GuiBuilder> loadGuiConfig(GamePackage packageConfig) {
-        File guiConfig = new File(Main.getGamePath() + "\\" + packageConfig.guiGfg);
+        System.out.println(packageConfig.guiCfg);
+        File guiConfig = new File(Main.getGamePath() + "\\" + packageConfig.guiCfg);
         if(!guiConfig.exists()){
             Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("The gui config for the package %s (%s) was not found at the location %s!", packageConfig.packageDisplayName, packageConfig.getPackageId(), guiConfig.getPath())));
             return null;
@@ -150,6 +151,7 @@ public class GameConfigLoader {
         GamePackage pack = null;
         try {
             pack = Main.getGsonMaster().fromJson(GameUtils.readFile(packageConfig.getAbsolutePath()), GamePackage.class);
+            System.out.println(GameUtils.readFile(packageConfig.getAbsolutePath()));
             pack.setPackageId(packageConfig.getName().replaceFirst("[.][^.]+$", ""));
         } catch (IOException e) {
             Main.getClient().setErrorGameStateException(new NullPointerException(String.format("While loading the package config from %s a error occurred", currentPackageFolder.getAbsolutePath())));

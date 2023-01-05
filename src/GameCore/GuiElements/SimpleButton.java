@@ -1,11 +1,17 @@
 package GameCore.GuiElements;
 
 import GameContent.GameCompiler;
+import GameContent.GamePackage;
 import GameCore.Main;
+import GameUtils.GameUtils;
 
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
+@SuppressWarnings("unused")
 public class SimpleButton implements InteractiveGuiElement {
 
     public final int startX;
@@ -13,11 +19,13 @@ public class SimpleButton implements InteractiveGuiElement {
     public final int width;
     public final int height;
     public final String interactionCode;
+    public final String interactionFile;
     public final String className;
 
-    private Intractable instance;
+    private Interactable instance;
 
-    public SimpleButton(int startX, int startY, int width, int height, String interactionCode, String className) {
+    public SimpleButton(int startX, int startY, int width, int height, String interactionCode, String interactionFile, String className) {
+        this.interactionFile = interactionFile;
         this.className = className;
         this.startX = startX;
         this.startY = startY;
@@ -36,19 +44,38 @@ public class SimpleButton implements InteractiveGuiElement {
 
     @SuppressWarnings("unchecked")
     @Override
-    public void compile() {
-        Class<?> interactionClass = GameCompiler.compileCode(interactionCode, className);
+    public void compile(GamePackage conf, String guiID) {
+        Class<?> interactionClass = null;
+        if(interactionCode == null){
+            File fJava = new File(Main.getGamePath() + "\\" + interactionFile + ".java");
+            File fClass = new File(Main.getGamePath() + "\\" + interactionFile + ".class");
+            if(fJava.exists()){
+                try {
+                    interactionClass = GameCompiler.compileCode(GameUtils.readFile(fJava), className);
+                } catch (IOException e) {
+                    Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("The file containing interaction code for %s in gui: %s from package %s (%s) was not found at %s!", SimpleButton.class.getSimpleName(), guiID, conf.packageDisplayName, conf.getPackageId(), fJava.getAbsolutePath())));
+                    return;
+                }
+            } else if (fClass.exists()) {
+                interactionClass = GameCompiler.loadClass(fClass, className);
+            }else {
+                Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("The file containing the interaction code for %s in gui: %s from package %s (%s) expected at %s OR %s was not found!", SimpleButton.class.getSimpleName(), guiID, conf.packageDisplayName, conf.getPackageId(), fJava.getPath(), fClass.getPath())));
+                return;
+            }
+        }else {
+            interactionClass = GameCompiler.compileCode(interactionCode, className);
+        }
         if (interactionClass == null) {
-            Main.getClient().setErrorGameStateException(new NullPointerException(String.format("loading the class %s for a SimpleButton resulted in null!", className)));
+            Main.getClient().setErrorGameStateException(new NullPointerException(String.format("Loading %s for gui: %s in package %s (%s)", SimpleButton.class.getSimpleName(), guiID, conf.packageDisplayName, conf.getPackageId())));
             return;
         }
-        if (!Intractable.class.isAssignableFrom(interactionClass)) {
-            Main.getClient().setErrorGameStateException(new ClassCastException(String.format("The class %s for a simple button did not implement %s!", className, Intractable.class.getCanonicalName())));
+        if (!Interactable.class.isAssignableFrom(interactionClass)) {
+            Main.getClient().setErrorGameStateException(new ClassCastException(String.format("The class %s for a simple button did not implement %s!", className, Interactable.class.getCanonicalName())));
             return;
         }
 
         try {
-            instance = ((Class<? extends Intractable>)interactionClass).getDeclaredConstructor().newInstance();
+            instance = ((Class<? extends Interactable>)interactionClass).getDeclaredConstructor().newInstance();
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                  NoSuchMethodException e) {
             Main.getClient().setErrorGameStateException(e);

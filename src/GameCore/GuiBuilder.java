@@ -1,5 +1,6 @@
 package GameCore;
 
+import GameContent.GamePackage;
 import GameCore.GuiElements.DynamicGuiElement;
 import GameCore.GuiElements.InteractiveGuiElement;
 import GameCore.GuiElements.StaticGuiElement;
@@ -31,7 +32,7 @@ public class GuiBuilder {
         this.guiId = guiId;
     }
 
-    public Gui build() {
+    public Gui build(GamePackage conf) {
         BufferedImage gui = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
         Graphics2D g2 = (Graphics2D) gui.getGraphics();
         g2.setColor(backgroundColor);
@@ -48,7 +49,7 @@ public class GuiBuilder {
                 }
             }
             if(compile) {
-                element.compile();
+                element.compile(conf, guiId);
             }
         }
         return new Gui(gui, activeGuiComponents, interactiveGuiComponents, guiId);

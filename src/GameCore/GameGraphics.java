@@ -21,8 +21,9 @@ public class GameGraphics {
     public void RegisterBuildingImage(Buildings bId, BufferedImage img){
         buildingTextures.put(bId.toString(), img);
     }
-
+    
     public void printErrorScreen(@NotNull Graphics g){
+        // TODO: 21.11.2022 make a printet exception clickable and then render the stack trace of the clicked exception click again and show all exceptions
         SetBackground(g, Color.DARK_GRAY);
         g.setColor(Color.RED);
         g.setFont(new Font("TimesRoman", Font.BOLD, 20));
@@ -30,7 +31,7 @@ public class GameGraphics {
         for(Exception e : Main.getClient().getErrorGameStateExceptions()) {
             for (String s : GameUtils.ChopValue(e.toString(), 75)) {
                 i++;
-                g.drawString(s, Main.getClient().windowWidth() / 2 - (g.getFontMetrics().stringWidth(s) / 2), 200 + 20 * i);
+                g.drawString(s, Main.getClient().windowWidth() / 2 - (g.getFontMetrics().stringWidth(s) / 2), 20 * i);
             }
             i++;
         }
@@ -42,7 +43,8 @@ public class GameGraphics {
     }
 
     public void printLoadingScreen(Graphics g) {
-        g.drawImage(buildingTextures.get(Buildings.Mine), 200, 200,200, 200, mainPane);
+        //g.setFont(Main.getClient().clientGraphics().gui().getNumberedFont());
+        g.drawString("Loading...", Main.getClient().windowWidth()/2, Main.getClient().windowHeight()/2);
     }
 
     public void printMainGame(Graphics g) {
@@ -53,7 +55,7 @@ public class GameGraphics {
                 gameGui.RenderBuildingInventoryGui(g, GameInputMain.getCursorGridPosition(), b);
             }
         }
-        gameGui.getGui(GuiTypes.PlayingMainGui).render(0, 0, g, null);
+        gameGui.getGui("Vanilla:MainGui").render(0, 0, g, null);
         g.setColor(new Color(0, 125, 0, 100));
         g.fillRect(GameInputMain.getCursorGridPosition().x * 10, GameInputMain.getCursorGridPosition().y * 10, 10, 10);
     }
@@ -61,7 +63,7 @@ public class GameGraphics {
     private void printBuildings(Graphics g) {
         for(int x : Main.getClient().buildingCore().getAllBuildings().keySet()){
             for(int y : Main.getClient().buildingCore().getAllBuildings().get(x).keySet()){
-                g.drawImage(buildingTextures.get(Main.getClient().buildingCore().getAllBuildings().get(x).get(y).getType()), x * 10, y * 10, 10, 10, mainPane);
+                g.drawImage(buildingTextures.get(Main.getClient().buildingCore().getBuilding(x, y).getType()), x * 10, y * 10, 10, 10, mainPane);
             }
         }
     }
@@ -78,7 +80,7 @@ public class GameGraphics {
         return mainPane;
     }
 
-    public BufferedImage getBuildingGuiImage(Buildings b) {
+    public BufferedImage getBuildingGuiImage(String b) {
         return buildingGuiTextures.get(b);
     }
 

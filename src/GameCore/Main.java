@@ -62,6 +62,7 @@ public class Main {
 
     private static Gson createMasterGson() {
         GsonBuilder builder = new GsonBuilder();
+        builder.addDeserializationExclusionStrategy(new JsonExclusionStrategy());
         builder.registerTypeAdapter(Color.class, new ColorDeserializer());
         builder.registerTypeAdapter(Font.class, new FontDeserializer());
         builder.registerTypeAdapter(StaticGuiElement.class, new StaticGuiElementDeserializer());

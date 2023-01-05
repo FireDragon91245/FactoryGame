@@ -1,6 +1,6 @@
 {
-  "buildingCfg": "Packages\\Vanilla\\BuildingConfig.json",
-  "guiCfg": "Packages\\Vanilla\\GuiConfig.json",
+  "buildingCfg": "Packages\\Vanilla\\Configs\\Building_Config.json",
+  "guiCfg": "Packages\\Vanilla\\Configs\\Gui_Config.json",
   "oreCfg": "Packages\\Vanilla\\OreConfig.json",
   "ItemCfg": "Packages\\Vanilla\\ItemConfig.json",
   "frameUpdates": true,

@@ -127,6 +127,10 @@ public class GameUtils {
         return builder.toString();
     }
 
+    public static String readFile(File fi) throws IOException{
+        return readFile(fi.getAbsolutePath());
+    }
+
     private static class IndexInformation {
         public final boolean found;
         public final int index;

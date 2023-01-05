@@ -20,9 +20,9 @@ public class GameGui {
     public void RenderBuildingInventoryGui(Graphics g, Vec2i buildingPos, Building building){
         int pixelPosX = buildingPos.x * 10;
         if(pixelPosX > Main.getClient().windowWidth() / 2){
-            guis.get(Main.getClient().buildingCore().getBuildingConfig(building.getType()).guiType).render(pixelPosX - 400, buildingPos.y * 5, g, building);
+            guis.get(Main.getClient().buildingCore().getBuildingConfig(building.getType()).getGuiType()).render(pixelPosX - 400, buildingPos.y * 5, g, building);
         }else{
-            guis.get(Main.getClient().buildingCore().getBuildingConfig(building.getType()).guiType).render(pixelPosX + 10, buildingPos.y * 5, g, building);
+            guis.get(Main.getClient().buildingCore().getBuildingConfig(building.getType()).getGuiType()).render(pixelPosX + 10, buildingPos.y * 5, g, building);
         }
     }
 
@@ -31,10 +31,10 @@ public class GameGui {
     }
 
     private void drawBuildingGuiTextureFrom(int startX, int startY, Building b, Graphics g) {
-        if(!Main.getClient().buildingCore().getBuildingConfig(b.getType()).overwriteGuiImage) {
-            g.drawImage(Main.getClient().clientGraphics().getBuildingGuiImage(b.getType()), startX, startY, Main.getClient().buildingCore().getBuildingConfig(b.getType()).guiTextureDimensions, Main.getClient().buildingCore().getBuildingConfig(b.getType()).guiTextureDimensions, Main.getClient().clientGraphics().getMainObserver());
+        if(!Main.getClient().buildingCore().getBuildingConfig(b.getType()).isOverwriteGuiImage()) {
+            g.drawImage(Main.getClient().clientGraphics().getBuildingGuiImage(b.getType()), startX, startY, Main.getClient().buildingCore().getBuildingConfig(b.getType()).getGuiTextureDimensions(), Main.getClient().buildingCore().getBuildingConfig(b.getType()).getGuiTextureDimensions(), Main.getClient().clientGraphics().getMainObserver());
         }else{
-            g.drawImage(mappedAnimationFrames.get(b.getType()).get(b.getWorkingProgress()), startX, startY, Main.getClient().buildingCore().getBuildingConfig(b.getType()).guiTextureDimensions, Main.getClient().buildingCore().getBuildingConfig(b.getType()).guiTextureDimensions, Main.getClient().clientGraphics().getMainObserver());
+            g.drawImage(mappedAnimationFrames.get(b.getType()).get(b.getWorkingProgress()), startX, startY, Main.getClient().buildingCore().getBuildingConfig(b.getType()).getGuiTextureDimensions(), Main.getClient().buildingCore().getBuildingConfig(b.getType()).getGuiTextureDimensions(), Main.getClient().clientGraphics().getMainObserver());
         }
     }
 
@@ -57,6 +57,10 @@ public class GameGui {
     }
 
     public Gui getGui(GuiTypes type) {
+        return guis.getOrDefault(type.toString(), null);
+    }
+
+    public Gui getGui(String type) {
         return guis.getOrDefault(type, null);
     }
 
@@ -71,6 +75,7 @@ public class GameGui {
     }
 
     public void registerGui(Gui build) {
+        System.out.println(build.guiId);
         guis.put(build.guiId, build);
     }
 }

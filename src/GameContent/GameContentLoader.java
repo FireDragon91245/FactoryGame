@@ -27,7 +27,7 @@ public class GameContentLoader {
                     loadTo.setErrorGameStateException(new NullPointerException(String.format("Tried to get the config of a non loaded building ID: %s", b.toString())));
                     return;
                 }
-                fi = new File(getValidPath(loadTo.buildingCore().getBuildingConfig(b).texturePath, loadTo));
+                fi = new File(getValidPath(loadTo.buildingCore().getBuildingConfig(b).getTexturePath(), loadTo));
                 image = ImageIO.read(fi);
             }catch (IOException e){
                 loadTo.setErrorGameStateException(e);
@@ -46,7 +46,7 @@ public class GameContentLoader {
                     loadTo.setErrorGameStateException(new NullPointerException(String.format("Tried to get the config of a non loaded building ID: %s", b.toString())));
                     return;
                 }
-                fi = new File(getValidPath(loadTo.buildingCore().getBuildingConfig(b).guiTexturePath, loadTo));
+                fi = new File(getValidPath(loadTo.buildingCore().getBuildingConfig(b).getGuiTexturePath(), loadTo));
                 image = ImageIO.read(fi);
             }catch (IOException e){
                 loadTo.setErrorGameStateException(e);
@@ -84,23 +84,23 @@ public class GameContentLoader {
                 loadTo.setErrorGameStateException(new NullPointerException(String.format("Tried to get the config of a non loaded building ID: %s", b.toString())));
                 return;
             }
-            if(loadTo.buildingCore().getBuildingConfig(b).workConfig == null){
+            if(loadTo.buildingCore().getBuildingConfig(b).getWorkConfig() == null){
                 continue;
             }
-            if(!loadTo.buildingCore().getBuildingConfig(b).overwriteGuiImage){
+            if(!loadTo.buildingCore().getBuildingConfig(b).isOverwriteGuiImage()){
                 continue;
             }
-            BufferedImage[] images = new BufferedImage[loadTo.buildingCore().getBuildingConfig(b).workConfig.guiImageAnimationFrames.length];
+            BufferedImage[] images = new BufferedImage[loadTo.buildingCore().getBuildingConfig(b).getWorkConfig().guiImageAnimationFrames.length];
             for(int i = 0; i < images.length; i++) {
                 try {
-                    File fi = new File(getValidPath(loadTo.buildingCore().getBuildingConfig(b).workConfig.guiImageAnimationFrames[i], loadTo));
+                    File fi = new File(getValidPath(loadTo.buildingCore().getBuildingConfig(b).getWorkConfig().guiImageAnimationFrames[i], loadTo));
                     images[i] = ImageIO.read(fi);
                 } catch (IOException e) {
                     loadTo.setErrorGameStateException(e);
                     return;
                 }
             }
-            loadTo.clientGraphics().gui().registerGuiAnimationForBuilding(MapAnimationFrames(images, loadTo.buildingCore().getBuildingConfig(b).workConfig.workInterval, loadTo), b);
+            loadTo.clientGraphics().gui().registerGuiAnimationForBuilding(MapAnimationFrames(images, loadTo.buildingCore().getBuildingConfig(b).getWorkConfig().workInterval, loadTo), b);
         }
     }
 
@@ -158,44 +158,54 @@ public class GameContentLoader {
 
     @SuppressWarnings("unchecked")
     public Class<? extends Building> loadBuildingClass(BuildingConfig config, GamePackage packageConfig) {
-        File buildingClass = new File(Main.getGamePath() + "\\" + config.buildingClass);
-
-        if(!buildingClass.exists()){
-            Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("Loading the building class for building %s in package %s (%s) resulted in null!", config.getBuildingId(), packageConfig.packageDisplayName, packageConfig.getPackageId())));
-            return null;
+        if(new File(Main.getGamePath() + "\\" + config.getBuildingClass()).exists()) {
+            if (config.getBuildingClass().endsWith(".class")) {
+                Class<?> cls = GameCompiler.loadClass(new File(Main.getGamePath() + "\\" + config.getBuildingClass()), config.getJavaClassPath());
+                if (InvalidBuildingClass(config, packageConfig, cls)) return null;
+                return (Class<? extends Building>) cls;
+            }
+            if (config.getBuildingClass().endsWith(".java")) {
+                Class<?> cls = GameCompiler.compileFile(new File(Main.getGamePath() + "\\" + config.getBuildingClass()), config.getJavaClassPath());
+                if (InvalidBuildingClass(config, packageConfig, cls)) return null;
+                return (Class<? extends Building>) cls;
+            }
         }
-
-        Class<?> cls;
-        if(buildingClass.getAbsolutePath().endsWith(".class")){
-            cls = GameCompiler.loadClass(buildingClass, Main.getGamePath() + "\\Packages\\" + packageConfig.getPackageId(), "Packages." + packageConfig.getPackageId() + "." + config.buildingClassImport);
-        }else if(buildingClass.getAbsolutePath().endsWith(".java")){
-            cls = GameCompiler.compileFile(buildingClass, Main.getGamePath() + "\\Packages\\" + packageConfig.getPackageId(), "Packages." + packageConfig.getPackageId() + "." + config.buildingClassImport);
-        }else{
-            Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("The class file for the building %s in the package %s (%s) was not in the expected format (.java / .class)", config.getBuildingId(), packageConfig.packageDisplayName, packageConfig.getPackageId())));
-            return null;
+        if (new File(Main.getGamePath() + "\\" + config.getBuildingClass() + ".class").exists()) {
+            Class<?> cls = GameCompiler.loadClass(new File(Main.getGamePath() + "\\" + config.getBuildingClass() + ".class"), config.getJavaClassPath());
+            if (InvalidBuildingClass(config, packageConfig, cls)) return null;
+            return (Class<? extends Building>) cls;
         }
+        if (new File(Main.getGamePath() + "\\" + config.getBuildingClass() + ".java").exists()) {
+            Class<?> cls = GameCompiler.compileFile(new File(Main.getGamePath() + "\\" + config.getBuildingClass() + ".java"), config.getJavaClassPath());
+            if (InvalidBuildingClass(config, packageConfig, cls)) return null;
+            return (Class<? extends Building>) cls;
+        }
+        Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("The building class for building %s in package %s (%s) was not found at %s +- (.java / .class)!", config.getBuildingId(), packageConfig.packageDisplayName, packageConfig.getPackageId(), Main.getGamePath() + "\\" + config.getBuildingClass())));
+        return null;
+    }
 
+    private boolean InvalidBuildingClass(BuildingConfig config, GamePackage packageConfig, Class<?> cls) {
         if(cls == null){
             Main.getClient().setErrorGameStateException(new NullPointerException(String.format("The loading of building class for building %s in package %s (%s) resulted in null!", config.getBuildingId(), packageConfig.packageDisplayName, packageConfig.getPackageId())));
-            return null;
+            return true;
         }
         if(!Building.class.isAssignableFrom(cls)){
             Main.getClient().setErrorGameStateException(new ClassCastException(String.format("The building class for building %s in package %s (%s) did not implement the building Interface!", config.getBuildingId(), packageConfig.packageDisplayName, packageConfig.getPackageId())));
-            return null;
+            return true;
         }
-        return (Class<? extends Building>) cls;
+        return false;
     }
 
     public BufferedImage loadBuildingTexture(BuildingConfig config, GamePackage packageConfig) {
-        File fi = new File(Main.getGamePath() + config.texturePath);
+        File fi = new File(Main.getGamePath() + config.getTexturePath());
         if(!fi.exists()){
-            Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("The texture for the Building %s in the package %s (%s) was not found at %s", config.getBuildingId(), packageConfig.packageDisplayName, packageConfig.getPackageId(), Main.getGamePath() + config.texturePath)));
+            Main.getClient().setErrorGameStateException(new FileNotFoundException(String.format("The texture for the Building %s in the package %s (%s) was not found at %s", config.getBuildingId(), packageConfig.packageDisplayName, packageConfig.getPackageId(), Main.getGamePath() + config.getTexturePath())));
         }
 
         try {
             return ImageIO.read(fi);
         }catch (IOException e){
-            Main.getClient().setErrorGameStateException(new IOException(String.format("While loading the texture for building %s in package %s (%s) the file was not in the right format or was accessed by another program, File: %s", config.getBuildingId(), packageConfig.packageDisplayName, packageConfig.getPackageId(), Main.getGamePath() + config.texturePath), e));
+            Main.getClient().setErrorGameStateException(new IOException(String.format("While loading the texture for building %s in package %s (%s) the file was not in the right format or was accessed by another program, File: %s", config.getBuildingId(), packageConfig.packageDisplayName, packageConfig.getPackageId(), Main.getGamePath() + config.getTexturePath()), e));
         }
         return null;
     }

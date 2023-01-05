@@ -12,7 +12,7 @@ public interface Building {
 
     void work(int x, int y);
 
-    Buildings getType();
+    String getType();
 
     Inventory getInventory();
 
@@ -20,9 +20,9 @@ public interface Building {
 
     int getWorkingProgress();
 
-    void neighborAdded(Buildings type);
+    void neighborAdded(String type);
 
     void overwriteInventory(Inventory value);
 
-    void updateSelfInventoryTargetAfterPlace(ArrayList<Buildings> neighborTypes);
+    void updateSelfInventoryTargetAfterPlace(ArrayList<String> neighborTypes);
 }

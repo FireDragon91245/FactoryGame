@@ -9,6 +9,7 @@ public class MouseInput implements MouseListener {
     @Override
     public void mouseClicked(MouseEvent e) {
         Main.getClient().clientGraphics().gui().sendMouseEventAll(e);
+        //Main.getClient().buildingCore().addBuilding(Main.getClient().buildingCore().getBuildingInstance("Mine", GameInputMain.getCursorGridPosition().x, GameInputMain.getCursorGridPosition().y));
     }
 
     @Override

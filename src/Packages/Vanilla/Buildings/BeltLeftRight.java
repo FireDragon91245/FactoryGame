@@ -1,12 +1,14 @@
-package GameBuildings;
+package Packages.Vanilla.Buildings;
 
+import GameBuildings.Building;
 import GameCore.Main;
 import GameItems.Inventory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class BuildingBeltLeftRight implements Building{
+@SuppressWarnings("unused")
+public class BeltLeftRight implements Building{
 
     private final int x;
     private final int y;
@@ -14,7 +16,7 @@ public class BuildingBeltLeftRight implements Building{
     private Inventory inv = new Inventory(getType());
     private boolean hasInventoryTarget;
 
-    public BuildingBeltLeftRight(int x, int y) {
+    public BeltLeftRight(int x, int y) {
         this.x = x;
         this.y = y;
     }
@@ -35,8 +37,8 @@ public class BuildingBeltLeftRight implements Building{
     }
 
     @Override
-    public Buildings getType() {
-        return Buildings.BeltLeftRight;
+    public String getType() {
+        return "BeltLeftRight";
     }
 
     @Override
@@ -55,12 +57,11 @@ public class BuildingBeltLeftRight implements Building{
         return -1;
     }
 
-    @Override
-    public void neighborAdded(Buildings type) {
-        if(Arrays.stream(Main.getClient().buildingCore().getBuildingConfig(getType()).inventoryConfig.thisImportsFrom).anyMatch(x -> x == type)){
+    public void neighborAdded(String type) {
+        if(Arrays.asList(Main.getClient().buildingCore().getBuildingConfig(getType()).getInventoryConfig().thisImportsFrom).contains(type)){
             hasInventoryTarget = true;
         }
-        if(Arrays.stream(Main.getClient().buildingCore().getBuildingConfig(getType()).inventoryConfig.thisExportsTo).anyMatch(x -> x == type)){
+        if(Arrays.asList(Main.getClient().buildingCore().getBuildingConfig(getType()).getInventoryConfig().thisExportsTo).contains(type)){
             hasInventoryTarget = true;
         }
     }
@@ -71,11 +72,11 @@ public class BuildingBeltLeftRight implements Building{
     }
 
     @Override
-    public void updateSelfInventoryTargetAfterPlace(ArrayList<Buildings> neighborTypes) {
-        if(Arrays.stream(Main.getClient().buildingCore().getBuildingConfig(getType()).inventoryConfig.thisImportsFrom).anyMatch(neighborTypes::contains)){
+    public void updateSelfInventoryTargetAfterPlace(ArrayList<String> neighborTypes) {
+        if(Arrays.stream(Main.getClient().buildingCore().getBuildingConfig(getType()).getInventoryConfig().thisImportsFrom).anyMatch(neighborTypes::contains)){
             hasInventoryTarget = true;
         }
-        if(Arrays.stream(Main.getClient().buildingCore().getBuildingConfig(getType()).inventoryConfig.thisExportsTo).anyMatch(neighborTypes::contains)){
+        if(Arrays.stream(Main.getClient().buildingCore().getBuildingConfig(getType()).getInventoryConfig().thisExportsTo).anyMatch(neighborTypes::contains)){
             hasInventoryTarget = true;
         }
     }

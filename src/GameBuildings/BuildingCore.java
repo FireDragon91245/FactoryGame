@@ -4,7 +4,13 @@ import GameCore.Main;
 import GameCore.UpdateDirections;
 import GameItems.*;
 import GameUtils.Vec2i;
+import Packages.Vanilla.Buildings.CoalOre;
+import Packages.Vanilla.Buildings.IronOre;
+import Packages.Vanilla.Buildings.Mine;
+import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,11 +32,15 @@ public class BuildingCore {
         return bConfig.getOrDefault(type, null);
     }
 
+    public BuildingConfig getBuildingConfig(String bId) {
+        return bConfig.getOrDefault(bId, null);
+    }
+
     public Class<? extends Building> GetClassFromBuildingType(Buildings type) {
         return switch (type) {
-            case Mine -> BuildingMine.class;
-            case IronOre -> BuildingIronOre.class;
-            case CoalOre -> BuildingCoalOre.class;
+            case Mine -> Mine.class;
+            case IronOre -> IronOre.class;
+            case CoalOre -> CoalOre.class;
             default -> throw new IllegalStateException("Unexpected value: " + type);
         };
     }
@@ -43,17 +53,17 @@ public class BuildingCore {
         return buildings;
     }
 
-    public void addBuilding(int x, int y, Building building) {
-        if (!buildings.containsKey(x)) {
-            buildings.put(x, new HashMap<>());
+    public void addBuilding(@NotNull Building building) {
+        if (!buildings.containsKey(building.getX())) {
+            buildings.put(building.getX(), new HashMap<>());
         }
-        building.updateSelfInventoryTargetAfterPlace(getNeighborTypes(x, y));
-        buildings.get(x).put(y, building);
-        sendNeighborChange(x, y, building.getType());
+        building.updateSelfInventoryTargetAfterPlace(getNeighborTypes(building.getX(), building.getY()));
+        buildings.get(building.getX()).put(building.getY(), building);
+        sendNeighborChange(building.getX(), building.getY(), building.getType());
     }
 
-    private ArrayList<Buildings> getNeighborTypes(int x, int y) {
-        ArrayList<Buildings> types = new ArrayList<>(4);
+    private ArrayList<String> getNeighborTypes(int x, int y) {
+        ArrayList<String> types = new ArrayList<>(4);
         if (isInBounds(x - 1, y)) {
             Building b = getBuilding(x - 1, y);
             if (b != null) {
@@ -81,7 +91,7 @@ public class BuildingCore {
         return types;
     }
 
-    private void sendNeighborChange(int x, int y, Buildings type) {
+    private void sendNeighborChange(int x, int y, String type) {
         if (isInBounds(x - 1, y)) {
             Building b = getBuilding(x - 1, y);
             if (b != null) {
@@ -160,12 +170,12 @@ public class BuildingCore {
     }
 
     public void handleDirectImportsToOutputFor(Vec2i pos, Building b) {
-        for(Directions dir : bConfig.get(b.getType()).inventoryConfig.importDirections){
+        for(Directions dir : bConfig.get(b.getType()).getInventoryConfig().importDirections){
             Vec2i currPos = pos.add(directionToRelativeCoordinate(dir));
             if(!isInBounds(currPos)){
                 continue;
             }
-            if(Arrays.stream(bConfig.get(b.getType()).inventoryConfig.blockedInputDirections).anyMatch(x -> x == dir)){
+            if(Arrays.stream(bConfig.get(b.getType()).getInventoryConfig().blockedInputDirections).anyMatch(x -> x == dir)){
                 continue;
             }
             if(!isBuildingAtPos(currPos)){
@@ -175,13 +185,13 @@ public class BuildingCore {
             if(b2 == null){
                 continue;
             }
-            if(Arrays.stream(bConfig.get(b.getType()).inventoryConfig.thisImportsFrom).noneMatch(x -> x == b2.getType())){
+            if(Arrays.stream(bConfig.get(b.getType()).getInventoryConfig().thisImportsFrom).noneMatch(x -> x == b2.getType())){
                 continue;
             }
-            if(Arrays.stream(bConfig.get(b2.getType()).inventoryConfig.blockedOutputDirections).anyMatch(x -> x == getOppositeDirection(dir))){
+            if(Arrays.stream(bConfig.get(b2.getType()).getInventoryConfig().blockedOutputDirections).anyMatch(x -> x == getOppositeDirection(dir))){
                 continue;
             }
-            if(Arrays.stream(bConfig.get(b2.getType()).inventoryConfig.otherBuildingsBlockedExport).anyMatch(x -> x == b.getType())){
+            if(Arrays.stream(bConfig.get(b2.getType()).getInventoryConfig().otherBuildingsBlockedExport).anyMatch(x -> x == b.getType())){
                 continue;
             }
 
@@ -190,20 +200,20 @@ public class BuildingCore {
             if(invBuilding1 == null || invBuilding2 == null){
                 continue;
             }
-            for(int b2Slot = 0; b2Slot < bConfig.get(b2.getType()).outputSlots; b2Slot++){
+            for(int b2Slot = 0; b2Slot < bConfig.get(b2.getType()).getOutputSlots(); b2Slot++){
                 if(invBuilding2.getOutputSlot(b2Slot).getItemType() == Items.None || invBuilding2.getOutputSlot(b2Slot).getItemType() == Items.Blocked){
                     continue;
                 }
                 boolean success = false;
                 boolean success2 = false;
-                for(int bSlot = 0; bSlot < bConfig.get(b.getType()).outputSlots; bSlot++){
+                for(int bSlot = 0; bSlot < bConfig.get(b.getType()).getOutputSlots(); bSlot++){
                     if(invBuilding1.getOutputSlot(bSlot).getItemType() == Items.Blocked){
                         continue;
                     }
                     if(invBuilding1.getOutputSlot(bSlot).getItemType() == invBuilding2.getOutputSlot(b2Slot).getItemType()){
-                        if(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
-                            invBuilding1.getOutputSlot(bSlot).addItemCount(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
-                            invBuilding2.getOutputSlot(b2Slot).removeItemCount(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
+                        if(this.getBuildingConfig(b.getType()).getInventoryConfig().importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
+                            invBuilding1.getOutputSlot(bSlot).addItemCount(this.getBuildingConfig(b.getType()).getInventoryConfig().importSpeed);
+                            invBuilding2.getOutputSlot(b2Slot).removeItemCount(this.getBuildingConfig(b.getType()).getInventoryConfig().importSpeed);
                         }else{
                             invBuilding1.getOutputSlot(bSlot).addItemCount(invBuilding2.getOutputSlot(b2Slot).getItemCount());
                             invBuilding2.setOutputSlot(b2Slot, new ItemStack(Items.None, 0));
@@ -214,11 +224,11 @@ public class BuildingCore {
                     }
                 }
                 if(!success){
-                    for(int bSlot = 0; bSlot < bConfig.get(b.getType()).outputSlots; bSlot++){
+                    for(int bSlot = 0; bSlot < bConfig.get(b.getType()).getOutputSlots(); bSlot++){
                         if(invBuilding1.getOutputSlot(bSlot).getItemType() == Items.None){
-                            if(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
-                                invBuilding1.setOutputSlot(bSlot, new ItemStack(invBuilding2.getOutputSlot(b2Slot).getItemType(), this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed));
-                                invBuilding2.getOutputSlot(b2Slot).removeItemCount(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
+                            if(this.getBuildingConfig(b.getType()).getInventoryConfig().importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
+                                invBuilding1.setOutputSlot(bSlot, new ItemStack(invBuilding2.getOutputSlot(b2Slot).getItemType(), this.getBuildingConfig(b.getType()).getInventoryConfig().importSpeed));
+                                invBuilding2.getOutputSlot(b2Slot).removeItemCount(this.getBuildingConfig(b.getType()).getInventoryConfig().importSpeed);
                             }else{
                                 invBuilding1.setOutputSlot(bSlot, new ItemStack(invBuilding2.getOutputSlot(b2Slot).getItemType(), invBuilding2.getOutputSlot(b2Slot).getItemCount()));
                                 invBuilding2.setOutputSlot(b2Slot, new ItemStack(Items.None, 0));
@@ -236,12 +246,12 @@ public class BuildingCore {
     }
 
     public void handleDirectImportsToOutputForWorkControlled(Vec2i pos, Building b) {
-        for(Directions dir : bConfig.get(b.getType()).inventoryConfig.importDirections){
+        for(Directions dir : bConfig.get(b.getType()).getInventoryConfig().importDirections){
             Vec2i currPos = pos.add(directionToRelativeCoordinate(dir));
             if(!isInBounds(currPos)){
                 continue;
             }
-            if(Arrays.stream(bConfig.get(b.getType()).inventoryConfig.blockedInputDirections).anyMatch(x -> x == dir)){
+            if(Arrays.stream(bConfig.get(b.getType()).getInventoryConfig().blockedInputDirections).anyMatch(x -> x == dir)){
                 continue;
             }
             if(!isBuildingAtPos(currPos)){
@@ -251,13 +261,13 @@ public class BuildingCore {
             if(b2 == null){
                 continue;
             }
-            if(Arrays.stream(bConfig.get(b.getType()).inventoryConfig.thisImportsFrom).noneMatch(x -> x == b2.getType())){
+            if(Arrays.stream(bConfig.get(b.getType()).getInventoryConfig().thisImportsFrom).noneMatch(x -> x == b2.getType())){
                 continue;
             }
-            if(Arrays.stream(bConfig.get(b2.getType()).inventoryConfig.blockedOutputDirections).anyMatch(x -> x == getOppositeDirection(dir))){
+            if(Arrays.stream(bConfig.get(b2.getType()).getInventoryConfig().blockedOutputDirections).anyMatch(x -> x == getOppositeDirection(dir))){
                 continue;
             }
-            if(Arrays.stream(bConfig.get(b2.getType()).inventoryConfig.otherBuildingsBlockedExport).anyMatch(x -> x == b.getType())){
+            if(Arrays.stream(bConfig.get(b2.getType()).getInventoryConfig().otherBuildingsBlockedExport).anyMatch(x -> x == b.getType())){
                 continue;
             }
 
@@ -268,20 +278,20 @@ public class BuildingCore {
             if(invBuilding1 == null || invBuilding2 == null){
                 continue;
             }
-            for(int b2Slot = 0; b2Slot < bConfig.get(b2.getType()).outputSlots; b2Slot++){
+            for(int b2Slot = 0; b2Slot < bConfig.get(b2.getType()).getOutputSlots(); b2Slot++){
                 if(invBuilding2.getOutputSlot(b2Slot).getItemType() == Items.None || invBuilding2.getOutputSlot(b2Slot).getItemType() == Items.Blocked){
                     continue;
                 }
                 boolean success = false;
                 boolean success2 = false;
-                for(int bSlot = 0; bSlot < bConfig.get(b.getType()).outputSlots; bSlot++){
+                for(int bSlot = 0; bSlot < bConfig.get(b.getType()).getOutputSlots(); bSlot++){
                     if(invBuilding1.getOutputSlot(bSlot).getItemType() == Items.Blocked){
                         continue;
                     }
                     if(invBuilding1.getOutputSlot(bSlot).getItemType() == invBuilding2.getOutputSlot(b2Slot).getItemType()){
-                        if(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
-                            invBuilding1.getOutputSlot(bSlot).addItemCount(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
-                            invBuilding2.getOutputSlot(b2Slot).removeItemCount(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
+                        if(this.getBuildingConfig(b.getType()).getInventoryConfig().importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
+                            invBuilding1.getOutputSlot(bSlot).addItemCount(this.getBuildingConfig(b.getType()).getInventoryConfig().importSpeed);
+                            invBuilding2.getOutputSlot(b2Slot).removeItemCount(this.getBuildingConfig(b.getType()).getInventoryConfig().importSpeed);
                         }else{
                             invBuilding1.getOutputSlot(bSlot).addItemCount(invBuilding2.getOutputSlot(b2Slot).getItemCount());
                             invBuilding2.setOutputSlot(b2Slot, new ItemStack(Items.None, 0));
@@ -292,11 +302,11 @@ public class BuildingCore {
                     }
                 }
                 if(!success){
-                    for(int bSlot = 0; bSlot < bConfig.get(b.getType()).outputSlots; bSlot++){
+                    for(int bSlot = 0; bSlot < bConfig.get(b.getType()).getOutputSlots(); bSlot++){
                         if(invBuilding1.getOutputSlot(bSlot).getItemType() == Items.None){
-                            if(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
-                                invBuilding1.setOutputSlot(bSlot, new ItemStack(invBuilding2.getOutputSlot(b2Slot).getItemType(), this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed));
-                                invBuilding2.getOutputSlot(b2Slot).removeItemCount(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
+                            if(this.getBuildingConfig(b.getType()).getInventoryConfig().importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
+                                invBuilding1.setOutputSlot(bSlot, new ItemStack(invBuilding2.getOutputSlot(b2Slot).getItemType(), this.getBuildingConfig(b.getType()).getInventoryConfig().importSpeed));
+                                invBuilding2.getOutputSlot(b2Slot).removeItemCount(this.getBuildingConfig(b.getType()).getInventoryConfig().importSpeed);
                             }else{
                                 invBuilding1.setOutputSlot(bSlot, new ItemStack(invBuilding2.getOutputSlot(b2Slot).getItemType(), invBuilding2.getOutputSlot(b2Slot).getItemCount()));
                                 invBuilding2.setOutputSlot(b2Slot, new ItemStack(Items.None, 0));
@@ -314,12 +324,12 @@ public class BuildingCore {
     }
 
     private void handleImportsFor(Vec2i pos, Building b) {
-        for(Directions dir : bConfig.get(b.getType()).inventoryConfig.importDirections){
+        for(Directions dir : bConfig.get(b.getType()).getInventoryConfig().importDirections){
             Vec2i currPos = pos.add(directionToRelativeCoordinate(dir));
             if(!isInBounds(currPos)){
                 continue;
             }
-            if(Arrays.stream(bConfig.get(b.getType()).inventoryConfig.blockedInputDirections).anyMatch(x -> x == dir)){
+            if(Arrays.stream(bConfig.get(b.getType()).getInventoryConfig().blockedInputDirections).anyMatch(x -> x == dir)){
                 continue;
             }
             if(!isBuildingAtPos(currPos)){
@@ -329,13 +339,13 @@ public class BuildingCore {
             if(b2 == null){
                 continue;
             }
-            if(Arrays.stream(bConfig.get(b.getType()).inventoryConfig.thisImportsFrom).noneMatch(x -> x == b2.getType())){
+            if(Arrays.stream(bConfig.get(b.getType()).getInventoryConfig().thisImportsFrom).noneMatch(x -> x == b2.getType())){
                 continue;
             }
-            if(Arrays.stream(bConfig.get(b2.getType()).inventoryConfig.blockedOutputDirections).anyMatch(x -> x == getOppositeDirection(dir))){
+            if(Arrays.stream(bConfig.get(b2.getType()).getInventoryConfig().blockedOutputDirections).anyMatch(x -> x == getOppositeDirection(dir))){
                 continue;
             }
-            if(Arrays.stream(bConfig.get(b2.getType()).inventoryConfig.otherBuildingsBlockedExport).anyMatch(x -> x == b.getType())){
+            if(Arrays.stream(bConfig.get(b2.getType()).getInventoryConfig().otherBuildingsBlockedExport).anyMatch(x -> x == b.getType())){
                 continue;
             }
 
@@ -344,20 +354,20 @@ public class BuildingCore {
             if(invBuilding1 == null || invBuilding2 == null){
                 continue;
             }
-            for(int b2Slot = 0; b2Slot < bConfig.get(b2.getType()).outputSlots; b2Slot++){
+            for(int b2Slot = 0; b2Slot < bConfig.get(b2.getType()).getOutputSlots(); b2Slot++){
                 if(invBuilding2.getOutputSlot(b2Slot).getItemType() == Items.None || invBuilding2.getOutputSlot(b2Slot).getItemType() == Items.Blocked){
                     continue;
                 }
                 boolean success = false;
                 boolean success2 = false;
-                for(int bSlot = 0; bSlot < bConfig.get(b.getType()).inputSlots; bSlot++){
+                for(int bSlot = 0; bSlot < bConfig.get(b.getType()).getInputSlots(); bSlot++){
                     if(invBuilding1.getInputSlot(bSlot).getItemType() == Items.Blocked){
                         continue;
                     }
                     if(invBuilding1.getInputSlot(bSlot).getItemType() == invBuilding2.getOutputSlot(b2Slot).getItemType()){
-                        if(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
-                            invBuilding1.getInputSlot(bSlot).addItemCount(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
-                            invBuilding2.getOutputSlot(b2Slot).removeItemCount(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
+                        if(this.getBuildingConfig(b.getType()).getInventoryConfig().importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
+                            invBuilding1.getInputSlot(bSlot).addItemCount(this.getBuildingConfig(b.getType()).getInventoryConfig().importSpeed);
+                            invBuilding2.getOutputSlot(b2Slot).removeItemCount(this.getBuildingConfig(b.getType()).getInventoryConfig().importSpeed);
                         }else{
                             invBuilding1.getInputSlot(bSlot).addItemCount(invBuilding2.getOutputSlot(b2Slot).getItemCount());
                             invBuilding2.setOutputSlot(b2Slot, new ItemStack(Items.None, 0));
@@ -368,11 +378,11 @@ public class BuildingCore {
                     }
                 }
                 if(!success){
-                    for(int bSlot = 0; bSlot < bConfig.get(b.getType()).inputSlots; bSlot++){
+                    for(int bSlot = 0; bSlot < bConfig.get(b.getType()).getInputSlots(); bSlot++){
                         if(invBuilding1.getInputSlot(bSlot).getItemType() == Items.None){
-                            if(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
-                                invBuilding1.setInputSlot(bSlot, new ItemStack(invBuilding2.getOutputSlot(b2Slot).getItemType(), this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed));
-                                invBuilding2.getOutputSlot(b2Slot).removeItemCount(this.getBuildingConfig(b.getType()).inventoryConfig.importSpeed);
+                            if(this.getBuildingConfig(b.getType()).getInventoryConfig().importSpeed < invBuilding2.getOutputSlot(b2Slot).getItemCount()) {
+                                invBuilding1.setInputSlot(bSlot, new ItemStack(invBuilding2.getOutputSlot(b2Slot).getItemType(), this.getBuildingConfig(b.getType()).getInventoryConfig().importSpeed));
+                                invBuilding2.getOutputSlot(b2Slot).removeItemCount(this.getBuildingConfig(b.getType()).getInventoryConfig().importSpeed);
                             }else{
                                 invBuilding1.setInputSlot(bSlot, new ItemStack(invBuilding2.getOutputSlot(b2Slot).getItemType(), invBuilding2.getOutputSlot(b2Slot).getItemCount()));
                                 invBuilding2.setOutputSlot(b2Slot, new ItemStack(Items.None, 0));
@@ -421,7 +431,7 @@ public class BuildingCore {
     public void updateWorkAll() {
         for(int x : buildings.keySet()){
             for(Map.Entry<Integer, Building> entry : buildings.get(x).entrySet()){
-                if(bConfig.get(entry.getValue().getType()).itemControllerType == ItemControllerTypes.ItemSystemWorkControlled){
+                if(bConfig.get(entry.getValue().getType()).getItemControllerType() == ItemControllerTypes.ItemSystemWorkControlled){
                     entry.getValue().work(x, entry.getKey());
                 }
             }
@@ -431,10 +441,10 @@ public class BuildingCore {
     public void updateLeftRightTopBottom(){
         for(int x : buildings.keySet()){
             for(Map.Entry<Integer, Building> entry : buildings.get(x).entrySet()){
-                if(bConfig.get(entry.getValue().getType()).updateDirection == UpdateDirections.LeftRightTopBottom){
-                    if(bConfig.get(entry.getValue().getType()).itemControllerType == ItemControllerTypes.ItemSystemNormal){
+                if(bConfig.get(entry.getValue().getType()).getUpdateDirection() == UpdateDirections.LeftRightTopBottom){
+                    if(bConfig.get(entry.getValue().getType()).getItemControllerType() == ItemControllerTypes.ItemSystemNormal){
                         handleImportsFor(new Vec2i(x, entry.getKey()), entry.getValue());
-                    }else if(bConfig.get(entry.getValue().getType()).itemControllerType == ItemControllerTypes.ItemSystemMoveDirectToOutput){
+                    }else if(bConfig.get(entry.getValue().getType()).getItemControllerType() == ItemControllerTypes.ItemSystemMoveDirectToOutput){
                         handleDirectImportsToOutputFor(new Vec2i(x, entry.getKey()), entry.getValue());
                     }
                 }
@@ -452,10 +462,10 @@ public class BuildingCore {
                     continue;
                 }
                 Building b = buildings.get(x).get(y);
-                if(bConfig.get(b.getType()).updateDirection == UpdateDirections.RightLeftBottomTop){
-                    if(bConfig.get(b.getType()).itemControllerType == ItemControllerTypes.ItemSystemNormal){
+                if(bConfig.get(b.getType()).getUpdateDirection() == UpdateDirections.RightLeftBottomTop){
+                    if(bConfig.get(b.getType()).getItemControllerType() == ItemControllerTypes.ItemSystemNormal){
                         handleImportsFor(new Vec2i(x, y), b);
-                    }else if(bConfig.get(b.getType()).itemControllerType == ItemControllerTypes.ItemSystemMoveDirectToOutput){
+                    }else if(bConfig.get(b.getType()).getItemControllerType() == ItemControllerTypes.ItemSystemMoveDirectToOutput){
                         handleDirectImportsToOutputFor(new Vec2i(x, y), b);
                     }
                 }
@@ -469,5 +479,35 @@ public class BuildingCore {
 
     public void registerBuildingClass(String buildingId, Class<? extends Building> buildingClass) {
         bClass.put(buildingId, buildingClass);
+    }
+
+    public boolean isBuildingRegistered(String buildingId){
+        return bClass.containsKey(buildingId);
+    }
+
+    public Building getBuildingInstance(String buildingId, int x, int y){
+        try {
+            /*for (Constructor<?> c : bClass.get(buildingId).getDeclaredConstructors()) {
+                System.out.println(String.format("%s", c.toString()));
+                for (Class<?> par : c.getParameterTypes()) {
+                    System.out.println(par.getName());
+                    System.out.println(par == int.class);
+                }
+
+            }
+
+            System.out.println(bClass.get(buildingId).getDeclaredConstructor(int.class, int.class));
+            */
+            Constructor<?> c = bClass.get(buildingId).getDeclaredConstructor(int.class, int.class);
+            c.setAccessible(true);
+            return (Building) c.newInstance(x, y);
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            Main.getClient().setErrorGameStateException(new IllegalStateException(String.format("While creating a new building instance for building id: %s a error cured! (x: %d;y: %d)", buildingId, x, y), e));
+        }
+        return null;
+    }
+
+    public Building getBuildingInstance(String buildingId, Vec2i vec) {
+        return getBuildingInstance(buildingId, vec.x, vec.y);
     }
 }
